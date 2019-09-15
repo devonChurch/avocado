@@ -1,11 +1,64 @@
-import React from "react";
+import "normalize.css";
+import React, { useState } from "react";
+import nanoid from "nanoid";
+import { Swatches, UserSwatch, AddSwatch } from "./Swatch";
 
-function App() {
+import { createGlobalStyle } from "styled-components";
+
+const GlobalStyle = createGlobalStyle`
+  html {
+    box-sizing: border-box;
+  }
+  *, *:before, *:after {
+    box-sizing: inherit;
+  }
+`;
+
+// create color container
+// + should be a form?
+
+// create color item
+// ✅ with color selection
+// + with drag system
+
+// create combinations container
+
+// create combinations item
+// + add state
+// + add populated state
+// + add drag state
+
+// uuid
+// + get color
+// ✅ set color
+
+const createSwatchKey = () => nanoid();
+const SWATCH_BLACK = "#000000";
+
+const App = () => {
+  const [swatches, setSwatches] = useState(new Map());
+
+  const addNewSwatch = () =>
+    setSwatches(new Map([...swatches, [createSwatchKey(), SWATCH_BLACK]]));
+
+  const updateUserSwatch = (id, hex) =>
+    setSwatches(new Map([...swatches, [id, hex]]));
+
   return (
     <>
-      <h1>Hello World!</h1>
+      <GlobalStyle />
+      <Swatches>
+        {[...swatches].map(([id, hex]) => (
+          <UserSwatch
+            key={id}
+            handleChange={updateUserSwatch}
+            {...{ id, hex }}
+          />
+        ))}
+        <AddSwatch handleAdd={addNewSwatch} />
+      </Swatches>
     </>
   );
-}
+};
 
 export default App;
