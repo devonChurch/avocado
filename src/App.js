@@ -38,8 +38,12 @@ const SWATCH_BLACK = "#000000";
 const App = () => {
   const [swatches, setSwatches] = useState(new Map());
 
-  const addNewSwatch = () =>
-    setSwatches(new Map([...swatches, [createSwatchKey(), SWATCH_BLACK]]));
+  const addNewSwatch = () => {
+    const [lastId, lastHex] = [...swatches].pop() || [];
+    setSwatches(
+      new Map([...swatches, [createSwatchKey(), lastHex || SWATCH_BLACK]])
+    );
+  };
 
   const updateUserSwatch = (id, hex) =>
     setSwatches(new Map([...swatches, [id, hex]]));
