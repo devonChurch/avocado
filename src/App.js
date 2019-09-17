@@ -1,7 +1,8 @@
 import "normalize.css";
 import React, { useState } from "react";
 import nanoid from "nanoid";
-import { Swatches, UserSwatch, AddSwatch } from "./Swatch";
+import { Swatches, UserSwatch, AppendSwatch, InjectSwatch } from "./Swatch";
+import { Compositions, UserComposition, AddComposition } from "./Composition";
 
 import { createGlobalStyle } from "styled-components";
 
@@ -9,8 +10,13 @@ const GlobalStyle = createGlobalStyle`
   html {
     box-sizing: border-box;
   }
+  
   *, *:before, *:after {
     box-sizing: inherit;
+  }
+
+  body {
+    padding: 50px;
   }
 `;
 
@@ -48,19 +54,83 @@ const App = () => {
   const updateUserSwatch = (id, hex) =>
     setSwatches(new Map([...swatches, [id, hex]]));
 
+  const [dragStartId, setDragStartId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+
+  const injectAddSwatchDropPoint = (event, id) => {
+    if (dragStartId === id) return;
+  };
+
+  const removeDragStartId = () => setDragStartId(null);
+  const removeDragOverId = () => setDragOverId(null);
+  const removeDragIds = () => {
+    removeDragStartId(null);
+    removeDragOverId(null);
+  };
+  const moveUserSwatch = (position, moveToid) => {
+    // debugger;
+    const shoudPrepend = position === "left";
+    const movedSwatch = [dragStartId, swatches.get(dragStartId)];
+    const movedSwatches = new Map(
+      [...swatches].reduce((acc, [id, hex]) => {
+        switch (true) {
+          case id === dragStartId:
+            return acc; // Remove the swatch from its orignal location.
+          case id === moveToid:
+            return shoudPrepend
+              ? [...acc, movedSwatch, [id, hex]]
+              : [...acc, [id, hex], movedSwatch];
+          default:
+            return [...acc, [id, hex]];
+        }
+      }, [])
+    );
+    setSwatches(movedSwatches);
+    // const moveSwatch = nextSwatches.get(id);
+    // moveSwatch.delete(id)
+    // const moveToIndex = [...nextSwatches].indexOf([])
+  };
+
+  // const createDropZoneHandlers = id => ({
+  //   handleDragOver: () => setDragOverId(id),
+  //   handleDragExit: removeDragOverId,
+  //   handleDragEnd: removeDragIds
+  // });
+
   return (
     <>
       <GlobalStyle />
       <Swatches>
+        {[...swatches].map(([id, hex]) => {
+          // const dropZoneHandlers = createDropZoneHandlers(id);
+
+          return (
+            <UserSwatch
+              key={id}
+              handleChange={updateUserSwatch}
+              handleDragStart={() => setDragStartId(id)}
+              handleDragOver={() => setDragOverId(id)}
+              handleDragExit={removeDragOverId}
+              handleDrop={moveUserSwatch}
+              hasAddHandles={dragStartId && dragStartId !== id}
+              {...{ id, hex }}
+            >
+              {/* {dragStartId && dragStartId !== id && <InjectSwatch {...dropZoneHandlers} />} */}
+            </UserSwatch>
+          );
+        })}
+        <AppendSwatch handleAdd={addNewSwatch} />
+      </Swatches>
+      <Compositions>
         {[...swatches].map(([id, hex]) => (
-          <UserSwatch
+          <UserComposition
             key={id}
             handleChange={updateUserSwatch}
             {...{ id, hex }}
           />
         ))}
-        <AddSwatch handleAdd={addNewSwatch} />
-      </Swatches>
+        <AddComposition handleAdd={addNewSwatch} />
+      </Compositions>
     </>
   );
 };
