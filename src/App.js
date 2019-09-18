@@ -67,16 +67,22 @@ const App = () => {
     removeDragStartId(null);
     removeDragOverId(null);
   };
-  const moveUserSwatch = (position, moveToid) => {
+  const moveUserSwatch = moveToId => {
     // debugger;
-    const shoudPrepend = position === "left";
+    if (dragStartId === moveToId) return;
+
+    const swatchesArray = [...swatches];
+    const createIndexComparison = compareId => ([id]) => id === compareId;
+    const moveToIndex = swatchesArray.findIndex(createIndexComparison(moveToId)); // prettier-ignore
+    const dragStartIndex = swatchesArray.findIndex(createIndexComparison(dragStartId)); // prettier-ignore
+    const shoudPrepend = moveToIndex < dragStartIndex; // position === "left";
     const movedSwatch = [dragStartId, swatches.get(dragStartId)];
     const movedSwatches = new Map(
-      [...swatches].reduce((acc, [id, hex]) => {
+      swatchesArray.reduce((acc, [id, hex]) => {
         switch (true) {
           case id === dragStartId:
             return acc; // Remove the swatch from its orignal location.
-          case id === moveToid:
+          case id === moveToId:
             return shoudPrepend
               ? [...acc, movedSwatch, [id, hex]]
               : [...acc, [id, hex], movedSwatch];

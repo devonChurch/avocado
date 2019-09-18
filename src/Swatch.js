@@ -122,16 +122,23 @@ export const UserSwatch = ({
         handleDragStart(event);
       }}
       onDragEnd={() => setIsDragged(false)}
-      // onDragOver={handleDragOver}
-      // onDragLeave={handleDragExit}
-      // onMouseLeave={handleDragExit}
-      // onDrop={handleDragEnd}
-      // onDragStart={event => {
-      //   console.log("dragstart", event, event.target);
-      // }}
+      onDragOver={event => {
+        handleDragOver(event);
+        // setIsOver(true);
+        event.preventDefault();
+      }}
+      onDragLeave={event => {
+        // setIsOver(false);
+        handleDragExit(event);
+      }}
+      onDrop={event => {
+        console.log("dropped", event.target);
+        handleDrop(id);
+        event.preventDefault();
+      }}
     >
       <Input type="color" value={hex} onChange={throttled} />
-      {hasAddHandles && (
+      {/* {hasAddHandles && (
         <>
           <InjectSwatch
             position="left"
@@ -142,7 +149,7 @@ export const UserSwatch = ({
             {...{ id, handleDragOver, handleDragExit, handleDrop }}
           />
         </>
-      )}
+      )} */}
     </UserItem>
   );
 };
