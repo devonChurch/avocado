@@ -41,25 +41,79 @@ const GlobalStyle = createGlobalStyle`
 const createSwatchKey = () => nanoid();
 const SWATCH_BLACK = "#000000";
 
+const createIndexComparison = idOne => ([idTwo]) => idOne === idTwo;
+const findSwatchIndexFromId = (swatches, id) => swatches.findIndex(createIndexComparison(id));
+
+// Move ONLY swatches between the start and over drag indexes
+// all swatches AFTER the drag index move left
+// all swatches BEFORE the drag index move right
+
+const findDragOverSlideDirection = (swatches, dragStartId, dragOverId, swatchIndex) => {
+  const isInDragOverState = dragStartId && dragOverId && dragStartId !== dragOverId;
+  if (!isInDragOverState) return;
+
+  const dragStartIndex = findSwatchIndexFromId(swatches, dragStartId);
+  const dragOverIndex = findSwatchIndexFromId(swatches, dragOverId);
+  const isSlidableSwatch = dragStartIndex !== swatchIndex;
+  if (!isSlidableSwatch) return;
+
+  const isBetweenDragSwatches =
+    (swatchIndex >= dragStartIndex || swatchIndex >= dragOverIndex) &&
+    (swatchIndex <= dragStartIndex || swatchIndex <= dragOverIndex);
+  if (!isBetweenDragSwatches) return;
+
+  const direction = dragStartIndex > swatchIndex ? "right" : "left";
+  // console.clear();
+  console.log(
+    "swatchIndex",
+    swatchIndex,
+    "dragStartIndex",
+    dragStartIndex,
+    "dragOverIndex",
+    dragOverIndex,
+    "swatch",
+    swatchIndex,
+    "is in play",
+    direction
+  );
+
+  return direction;
+
+  // const dragDirection = dragOverIndex < dragStartIndex ? "left" : "right";
+  // const slideDirection = swatchIndex < dragOverIndex ? "left" : "right";
+  // const isDraggingLeft = dragOverIndex <= dragStartIndex; //  ? "left" : "right";
+  // const shouldSlideLeft = swatchIndex <= dragOverIndex; //  ? "left" : "right";
+
+  // if (isDraggingLeft && shouldSlideLeft) {
+  //   return "right";
+  // } else if (!isDraggingLeft && !shouldSlideLeft) {
+  //   return "left";
+  // } else {
+  // }
+
+  // console.log({ isDraggingLeft, shouldSlideLeft });
+
+  // return swatchIndex < dragOverIndex ? "left" : "right";
+};
+
 const App = () => {
-  const [swatches, setSwatches] = useState(new Map());
+  const [swatches, setSwatches] = useState(
+    new Map([["1", "blue"], ["2", "green"], ["3", "orange"], ["4", "pink"], ["5", "purple"]])
+  );
 
   const addNewSwatch = () => {
     const [lastId, lastHex] = [...swatches].pop() || [];
-    setSwatches(
-      new Map([...swatches, [createSwatchKey(), lastHex || SWATCH_BLACK]])
-    );
+    setSwatches(new Map([...swatches, [createSwatchKey(), lastHex || SWATCH_BLACK]]));
   };
 
-  const updateUserSwatch = (id, hex) =>
-    setSwatches(new Map([...swatches, [id, hex]]));
+  const updateUserSwatch = (id, hex) => setSwatches(new Map([...swatches, [id, hex]]));
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
 
-  const injectAddSwatchDropPoint = (event, id) => {
-    if (dragStartId === id) return;
-  };
+  // const injectAddSwatchDropPoint = (event, id) => {
+  //   if (dragStartId === id) return;
+  // };
 
   const removeDragStartId = () => setDragStartId(null);
   const removeDragOverId = () => setDragOverId(null);
@@ -67,34 +121,32 @@ const App = () => {
     removeDragStartId(null);
     removeDragOverId(null);
   };
-  const moveUserSwatch = moveToId => {
+  const dropUserSwatch = dropId => {
     // debugger;
-    if (dragStartId === moveToId) return;
+    if (dragStartId === dropId) return;
 
-    const swatchesArray = [...swatches];
-    const createIndexComparison = compareId => ([id]) => id === compareId;
-    const moveToIndex = swatchesArray.findIndex(createIndexComparison(moveToId)); // prettier-ignore
-    const dragStartIndex = swatchesArray.findIndex(createIndexComparison(dragStartId)); // prettier-ignore
-    const shoudPrepend = moveToIndex < dragStartIndex; // position === "left";
-    const movedSwatch = [dragStartId, swatches.get(dragStartId)];
-    const movedSwatches = new Map(
-      swatchesArray.reduce((acc, [id, hex]) => {
+    const prevSwatches = [...swatches];
+    const dropIndex = findSwatchIndexFromId(prevSwatches, dropId); // prettier-ignore
+    const dragStartIndex = findSwatchIndexFromId(prevSwatches, dragStartId); // prettier-ignore
+    const shoudPrepend = dropIndex < dragStartIndex; // position === "left";
+    const dropSwatch = [dragStartId, swatches.get(dragStartId)];
+    const nextSwatches = new Map(
+      prevSwatches.reduce((acc, [id, hex]) => {
         switch (true) {
           case id === dragStartId:
             return acc; // Remove the swatch from its orignal location.
-          case id === moveToId:
-            return shoudPrepend
-              ? [...acc, movedSwatch, [id, hex]]
-              : [...acc, [id, hex], movedSwatch];
+          case id === dropId:
+            return shoudPrepend ? [...acc, dropSwatch, [id, hex]] : [...acc, [id, hex], dropSwatch];
           default:
             return [...acc, [id, hex]];
         }
       }, [])
     );
-    setSwatches(movedSwatches);
+    setSwatches(nextSwatches);
+    removeDragIds();
     // const moveSwatch = nextSwatches.get(id);
     // moveSwatch.delete(id)
-    // const moveToIndex = [...nextSwatches].indexOf([])
+    // const dropIndex = [...nextSwatches].indexOf([])
   };
 
   // const createDropZoneHandlers = id => ({
@@ -107,7 +159,7 @@ const App = () => {
     <>
       <GlobalStyle />
       <Swatches>
-        {[...swatches].map(([id, hex]) => {
+        {[...swatches].map(([id, hex], swatchIndex) => {
           // const dropZoneHandlers = createDropZoneHandlers(id);
 
           return (
@@ -117,23 +169,22 @@ const App = () => {
               handleDragStart={() => setDragStartId(id)}
               handleDragOver={() => setDragOverId(id)}
               handleDragExit={removeDragOverId}
-              handleDrop={moveUserSwatch}
-              hasAddHandles={dragStartId && dragStartId !== id}
+              handleDrop={dropUserSwatch}
+              slideDirection={findDragOverSlideDirection(
+                [...swatches],
+                dragStartId,
+                dragOverId,
+                swatchIndex
+              )}
               {...{ id, hex }}
-            >
-              {/* {dragStartId && dragStartId !== id && <InjectSwatch {...dropZoneHandlers} />} */}
-            </UserSwatch>
+            />
           );
         })}
         <AppendSwatch handleAdd={addNewSwatch} />
       </Swatches>
       <Compositions>
         {[...swatches].map(([id, hex]) => (
-          <UserComposition
-            key={id}
-            handleChange={updateUserSwatch}
-            {...{ id, hex }}
-          />
+          <UserComposition key={id} handleChange={updateUserSwatch} {...{ id, hex }} />
         ))}
         <AddComposition handleAdd={addNewSwatch} />
       </Compositions>

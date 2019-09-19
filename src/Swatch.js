@@ -10,7 +10,7 @@ const List = styled.ul`
   margin: 0;
   padding: 0;
   display: grid;
-  grid-gap: 10px;
+  grid-gap: 0; // 10px;
   grid-template-columns: repeat(auto-fill, 80px);
   grid-template-rows: repeat(auto-fill, 80px);
 
@@ -20,19 +20,37 @@ const List = styled.ul`
   }
 `;
 
-const UserItem = styled.li`
+const DragHitBox = styled.li`
   position: relative;
-  background: ${({ hex }) => hex};
-  border: 0; // 10px solid;
-  border-color: ${({ isLight }) => (isLight ? "black" : "white")};
-  border-radius: 50%;
-  transition: 100ms;
-  transition-property: background, border-color;
-  opacity: ${({ isDragged }) => (isDragged ? 0.25 : 1)};
 
-  &:focus-within {
+  /* &:focus-within {
     outline: 2px solid skyblue;
+  } */
+`;
+
+const UserItem = styled.div`
+  pointer-events: none;
+  position: absolute;
+  background: ${({ hex }) => hex};
+  /* border-color: ${({ isLight }) => (isLight ? "black" : "white")}; */
+  transition: 100ms;
+transition-property: background transform;
+/* transition-property: background ${({ slideDirection }) =>
+  slideDirection ? ", transform" : ""}; */
+  opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)};
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+
+${({ slideDirection }) => {
+  // prettier-ignore
+  switch (slideDirection) {
+    case 'left': return css`transform: translateX(-100%);`;
+    case 'right': return css`transform: translateX(100%);`;
+    default: return css`transform: translateX(0);`;
   }
+}}
 `;
 
 const AppendItem = styled.li`
@@ -99,24 +117,18 @@ export const UserSwatch = ({
   handleDragOver,
   handleDragExit,
   handleDrop,
-  hasAddHandles
+  slideDirection
   // ...dropZoneHandlers
 }) => {
   // const inputNode = useRef(null); //  ref={inputNode}
 
   const [isDragged, setIsDragged] = useState(false);
   const swatch = createSwatch(hex);
-  const throttled = throttle(
-    event => handleChange(id, event.target.value),
-    1000
-  );
+  const throttled = throttle(event => handleChange(id, event.target.value), 1000);
 
   return (
-    <UserItem
+    <DragHitBox
       draggable
-      hex={hex}
-      isDragged={isDragged}
-      isLight={swatch.isLight()}
       onDragStart={event => {
         setIsDragged(true);
         handleDragStart(event);
@@ -137,20 +149,9 @@ export const UserSwatch = ({
         event.preventDefault();
       }}
     >
+      <UserItem {...{ hex, isDragged, slideDirection }} isLight={swatch.isLight()} />
       <Input type="color" value={hex} onChange={throttled} />
-      {/* {hasAddHandles && (
-        <>
-          <InjectSwatch
-            position="left"
-            {...{ id, handleDragOver, handleDragExit, handleDrop }}
-          />
-          <InjectSwatch
-            position="right"
-            {...{ id, handleDragOver, handleDragExit, handleDrop }}
-          />
-        </>
-      )} */}
-    </UserItem>
+    </DragHitBox>
   );
 };
 
@@ -164,13 +165,7 @@ export const AppendSwatch = ({ handleAdd }) => {
   );
 };
 
-export const InjectSwatch = ({
-  id,
-  position,
-  handleDragOver,
-  handleDragExit,
-  handleDrop
-}) => {
+export const InjectSwatch = ({ id, position, handleDragOver, handleDragExit, handleDrop }) => {
   const [isOver, setIsOver] = useState(false);
   return (
     // <InjectItem {...props}>
