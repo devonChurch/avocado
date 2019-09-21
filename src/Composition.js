@@ -10,7 +10,7 @@ const List = styled.ul`
   margin: 0;
   padding: 0;
   display: grid;
-  grid-gap: 10px;
+  grid-gap: 0; // 10px;
   grid-template-columns: repeat(auto-fill, 200px);
   grid-template-rows: repeat(auto-fill, 200px);
 
@@ -38,10 +38,7 @@ const AddButton = styled.button`
 export const Compositions = List;
 
 export const UserComposition = ({ id, hex, handleChange }) => {
-  const throttled = throttle(
-    event => handleChange(id, event.target.value),
-    1000
-  );
+  const throttled = throttle(event => handleChange(id, event.target.value), 1000);
 
   return (
     <UserItem

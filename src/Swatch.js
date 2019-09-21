@@ -43,12 +43,49 @@ transition-property: background transform;
   width: 100%;
   height: 100%;
 
-${({ slideDirection }) => {
+${({ slideDirection, swatchRef, ...props }) => {
   // prettier-ignore
+  // console.log('swatch props', props)
+  // xxx.nextElementSibling
+  // xxx.previousElementSibling
+
+  if (!swatchRef) return;
+
+  const { offsetTop: currentY, offsetLeft: currentX } = swatchRef;
+
   switch (slideDirection) {
-    case 'left': return css`transform: translateX(-100%);`;
-    case 'right': return css`transform: translateX(100%);`;
-    default: return css`transform: translateX(0);`;
+    case "left": {
+      const { offsetTop: prevY, offsetLeft: prevX } = swatchRef.previousElementSibling;
+      // const dragX = Math.abs(currentX - prevX) / 80;
+      const dragX = ((prevX - currentX) / 80) * 100;
+      const dragY = ((prevY - currentY) / 80) * 100;
+
+      // console.log(``);
+      // console.log(`currentY ${currentY} | prevY ${prevY} | dragY ${dragY}`);
+      // console.log(`currentX ${currentX} | prevX ${prevX} | dragX ${dragX}`);
+
+      return css`
+        transform: translate(${dragX}%, ${dragY}%);
+        z-index: 1;
+      `;
+    }
+
+    case "right": {
+      const { offsetTop: nextY, offsetLeft: nextX } = swatchRef.nextElementSibling;
+      // const dragX = Math.abs(currentX - nextX) / 80;
+      const dragX = ((nextX - currentX) / 80) * 100;
+      const dragY = ((nextY - currentY) / 80) * 100;
+
+      return css`
+        transform: translate(${dragX}%, ${dragY}%);
+        z-index: 1;
+      `;
+    }
+
+    default:
+      return css`
+        transform: translate(0, 0);
+      `;
   }
 }}
 `;
@@ -123,12 +160,14 @@ export const UserSwatch = ({
   // const inputNode = useRef(null); //  ref={inputNode}
 
   const [isDragged, setIsDragged] = useState(false);
+  const swatchRef = useRef(null);
   const swatch = createSwatch(hex);
   const throttled = throttle(event => handleChange(id, event.target.value), 1000);
 
   return (
     <DragHitBox
       draggable
+      ref={swatchRef}
       onDragStart={event => {
         setIsDragged(true);
         handleDragStart(event);
@@ -136,20 +175,19 @@ export const UserSwatch = ({
       onDragEnd={() => setIsDragged(false)}
       onDragOver={event => {
         handleDragOver(event);
-        // setIsOver(true);
         event.preventDefault();
       }}
-      onDragLeave={event => {
-        // setIsOver(false);
-        handleDragExit(event);
-      }}
+      onDragLeave={handleDragExit}
       onDrop={event => {
-        console.log("dropped", event.target);
         handleDrop(id);
         event.preventDefault();
       }}
     >
-      <UserItem {...{ hex, isDragged, slideDirection }} isLight={swatch.isLight()} />
+      <UserItem
+        {...{ hex, isDragged, slideDirection }}
+        isLight={swatch.isLight()}
+        swatchRef={swatchRef.current}
+      />
       <Input type="color" value={hex} onChange={throttled} />
     </DragHitBox>
   );

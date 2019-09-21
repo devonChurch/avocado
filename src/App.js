@@ -63,19 +63,6 @@ const findDragOverSlideDirection = (swatches, dragStartId, dragOverId, swatchInd
   if (!isBetweenDragSwatches) return;
 
   const direction = dragStartIndex > swatchIndex ? "right" : "left";
-  // console.clear();
-  console.log(
-    "swatchIndex",
-    swatchIndex,
-    "dragStartIndex",
-    dragStartIndex,
-    "dragOverIndex",
-    dragOverIndex,
-    "swatch",
-    swatchIndex,
-    "is in play",
-    direction
-  );
 
   return direction;
 
@@ -98,7 +85,18 @@ const findDragOverSlideDirection = (swatches, dragStartId, dragOverId, swatchInd
 
 const App = () => {
   const [swatches, setSwatches] = useState(
-    new Map([["1", "blue"], ["2", "green"], ["3", "orange"], ["4", "pink"], ["5", "purple"]])
+    new Map([
+      ["1", "#0707ff"],
+      ["2", "#00CAFB"],
+      ["3", "#F8CAFB"],
+      ["4", "#F8CA66"],
+      ["5", "#F86D66"],
+      ["6", "#0707ff"],
+      ["7", "#00CAFB"],
+      ["8", "#F8CAFB"],
+      ["9", "#F8CA66"],
+      ["10", "#F86D66"]
+    ])
   );
 
   const addNewSwatch = () => {
