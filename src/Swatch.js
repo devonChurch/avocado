@@ -22,7 +22,6 @@ const List = styled.ul`
 
 const DragHitBox = styled.li`
   position: relative;
-
   /* &:focus-within {
     outline: 2px solid skyblue;
   } */
@@ -36,7 +35,6 @@ const findDragXandYTransformation = (prevNode, nextNode) => {
 
   return css`
     transform: translate(${dragX}%, ${dragY}%);
-    z-index: 1;
   `;
 };
 
@@ -45,7 +43,7 @@ const UserItem = styled.div`
   position: absolute;
   background: ${({ hex }) => hex};
   /* border-color: ${({ isLight }) => (isLight ? "black" : "white")}; */
-  transition: 100ms;
+  transition: 250ms;
   /* transition-property: background transform; */
   transition-property: background ${({ isUserDragging }) => (isUserDragging ? ", transform" : "")};
   opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)};
@@ -147,6 +145,7 @@ export const UserSwatch = ({
 
   return (
     <DragHitBox
+      {...{ isDragged }}
       draggable
       ref={swatchRef}
       onDragStart={event => {

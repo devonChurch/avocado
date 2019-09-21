@@ -1,4 +1,5 @@
 import "normalize.css";
+import "drag-drop-touch";
 import React, { useState } from "react";
 import nanoid from "nanoid";
 import { Swatches, UserSwatch, AppendSwatch, InjectSwatch } from "./Swatch";
