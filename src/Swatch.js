@@ -35,8 +35,35 @@ const UserItem = styled.div`
   pointer-events: none;
   position: absolute;
   background: ${({ hex }) => hex};
+  transition: 500ms;
+  transition-property: background, transform, border;
+  /* opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)}; */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+
+  ${({ isUserDragging, isDragged }) => {
+    switch (true) {
+      case isUserDragging:
+        return css`
+          border-radius: 4px;
+          transform: scale(0.9);
+        `;
+      case isDragged:
+        return css`
+          border-radius: 4px;
+          transform: scale(1.1);
+        `;
+      default:
+        return;
+    }
+  }}
+`;
+
+const ReorderTransformation = styled.div`
   transition: 250ms;
-  opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)};
+  position: absolute;
   left: 0;
   top: 0;
   width: 100%;
@@ -59,11 +86,11 @@ const UserItem = styled.div`
     switch (isUserDragging) {
       case true:
         return css`
-          transition-property: background, transform;
+          transition-property: transform;
         `;
       default:
         return css`
-          transition-property: background;
+          transition-property: none;
         `;
     }
   }}
@@ -75,12 +102,30 @@ const AppendItem = styled.li`
 
 const AddButton = styled.button`
   appearance: none;
-  border: 2px dashed gray;
-  border-radius: 50%;
-  background: lightgray;
+  border: 2px dashed;
+  border-radius: 4px;
+  border-color: ${({ isTargeted }) => (isTargeted ? "darkgreen" : "gray")};
+  color: ${({ isTargeted }) => (isTargeted ? "darkgreen" : "gray")};
+  cursor: pointer;
+  background: ${({ isTargeted }) => (isTargeted ? "lightgreen" : "lightgray")};
   display: block;
   width: 100%;
   height: 100%;
+  transition: transform 250ms;
+
+  ${({ isTargeted }) =>
+    isTargeted
+      ? css`
+          border-color: darkgreen;
+          color: darkgreen;
+          background: lightgreen;
+          transform: scale(1.05);
+        `
+      : css`
+          border-color: gray;
+          color: gray;
+          background: lightgray;
+        `};
 `;
 
 const Input = styled.input`
@@ -102,6 +147,7 @@ export const UserSwatch = ({
   handleDragStart,
   handleDragOver,
   handleDragExit,
+  handleDragEnd,
   handleDrop,
   isUserDragging,
   createReorderTransform
@@ -120,11 +166,14 @@ export const UserSwatch = ({
         // will not initialise a DnD scenario without setting the `dataTransfer`.
         event.dataTransfer.setData("text/plain", "banana");
         setIsDragged(true);
-        handleDragStart(event);
+        handleDragStart();
       }}
-      onDragEnd={() => setIsDragged(false)}
+      onDragEnd={() => {
+        setIsDragged(false);
+        handleDragEnd();
+      }}
       onDragOver={event => {
-        handleDragOver(event);
+        handleDragOver();
         // MDN suggests applying `preventDefault` on specific DnD event hooks.
         // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
         event.preventDefault();
@@ -137,26 +186,50 @@ export const UserSwatch = ({
         event.preventDefault();
       }}
     >
-      <UserItem
-        {...{ hex, isDragged, isUserDragging }}
+      <ReorderTransformation
+        {...{ isDragged, isUserDragging }}
         reorderTransform={createReorderTransform(swatchRef.current)}
+      >
+        <UserItem
+          {...{ hex, isDragged, isUserDragging }}
 
-        // We do not need this right now but I am keeping here for reference for
-        // future functionality.
-        // import tinyColor from "tinycolor2";
-        // const swatch = createSwatch(hex);
-        // const createSwatch = hex => tinyColor(hex);
-        // isLight={swatch.isLight()}
-      />
-      <Input type="color" value={hex} onChange={throttled} />
+          // We do not need this right now but I am keeping here for reference for
+          // future functionality.
+          // import tinyColor from "tinycolor2";
+          // const swatch = createSwatch(hex);
+          // const createSwatch = hex => tinyColor(hex);
+          // isLight={swatch.isLight()}
+        />
+        <Input type="color" value={hex} onChange={throttled} />
+      </ReorderTransformation>
     </DragHitBox>
   );
 };
 
-export const AppendSwatch = ({ handleAdd }) => {
+export const AppendSwatch = ({ handleClick, handleDrop }) => {
+  const [isTargeted, setIsTargeted] = useState(false);
   return (
     <AppendItem>
-      <AddButton onClick={handleAdd}>
+      <AddButton
+        {...{ isTargeted }}
+        onClick={handleClick}
+        onDragOver={event => {
+          // An `onDragOver` event MUST be present in order for a `onDrop` to
+          // trigger!
+          setIsTargeted(true);
+          event.preventDefault();
+        }}
+        onDragLeave={() => setIsTargeted(false)}
+        onMouseEnter={() => setIsTargeted(true)}
+        onMouseLeave={() => setIsTargeted(false)}
+        onDrop={event => {
+          handleDrop();
+          setIsTargeted(false);
+          // MDN suggests applying `preventDefault` on specific DnD event hooks.
+          // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+          event.preventDefault();
+        }}
+      >
         <FontAwesomeIcon icon={faPlus} />
       </AddButton>
     </AppendItem>

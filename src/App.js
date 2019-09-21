@@ -68,11 +68,10 @@ const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchInde
   const isBetweenDragSwatches = isBeforeDragSwatches && isAfterDragSwatches;
   if (!isBetweenDragSwatches) return createReorderTransform;
 
-  // `positionReorderTransform`
   // Based on the direction ("left" or "right") that the user is dragging we
   // reorder the swatches that fall between the dragging indexes to fill the gap
   // left from the originating dragged swatch.
-  return prevNode => {
+  return function positionReorderTransform(prevNode) {
     const isDraggedRight = dragStartIndex > swatchIndex;
     const siblingTarget = isDraggedRight ? "nextElementSibling" : "previousElementSibling";
     const nextNode = prevNode[siblingTarget];
@@ -102,7 +101,7 @@ const App = () => {
   );
 
   const addNewSwatch = () => {
-    const [lastId, lastHex] = [...swatches].pop() || [];
+    const [, lastHex] = [...swatches].pop() || [];
     setSwatches(new Map([...swatches, [createSwatchKey(), lastHex || SWATCH_BLACK]]));
   };
 
@@ -117,7 +116,8 @@ const App = () => {
     removeDragStartId(null);
     removeDragOverId(null);
   };
-  const dropUserSwatch = dropId => {
+
+  const moveSwatchToNewLocation = dropId => {
     if (dragStartId === dropId) return;
 
     const prevSwatches = [...swatches];
@@ -141,6 +141,12 @@ const App = () => {
     removeDragIds();
   };
 
+  const duplicateAndAppendNewSwatch = () => {
+    const dropHex = swatches.get(dragStartId);
+    setSwatches(new Map([...swatches, [createSwatchKey(), dropHex]]));
+    removeDragIds();
+  };
+
   return (
     <>
       <GlobalStyle />
@@ -154,7 +160,8 @@ const App = () => {
               handleDragStart={() => setDragStartId(id)}
               handleDragOver={() => setDragOverId(id)}
               handleDragExit={removeDragOverId}
-              handleDrop={dropUserSwatch}
+              handleDragEnd={removeDragIds}
+              handleDrop={moveSwatchToNewLocation}
               isUserDragging={!!dragStartId}
               createReorderTransform={calculateReorderTransform(
                 [...swatches],
@@ -165,14 +172,14 @@ const App = () => {
             />
           );
         })}
-        <AppendSwatch handleAdd={addNewSwatch} />
+        <AppendSwatch handleClick={addNewSwatch} handleDrop={duplicateAndAppendNewSwatch} />
       </Swatches>
-      <Compositions>
+      {/* <Compositions>
         {[...swatches].map(([id, hex]) => (
           <UserComposition key={id} handleChange={updateUserSwatch} {...{ id, hex }} />
         ))}
-        <AddComposition handleAdd={addNewSwatch} />
-      </Compositions>
+        <AddComposition handleAdd={addNewSwatch}/>
+      </Compositions> */}
     </>
   );
 };
