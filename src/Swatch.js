@@ -1,82 +1,77 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled, { css } from "styled-components";
-import tinyColor from "tinycolor2";
 import throttle from "lodash.throttle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
+
+// MOVE to utils!
+const SWATCH_WIDTH = 80;
 
 const List = styled.ul`
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-gap: 0; // 10px;
-  grid-template-columns: repeat(auto-fill, 80px);
-  grid-template-rows: repeat(auto-fill, 80px);
+  grid-gap: 0;
+  grid-template-columns: repeat(auto-fill, ${SWATCH_WIDTH}px);
+  grid-template-rows: repeat(auto-fill, ${SWATCH_WIDTH}px);
 
   > * {
-    height: 80px;
-    width: 80px;
+    height: ${SWATCH_WIDTH}px;
+    width: ${SWATCH_WIDTH}px;
   }
 `;
 
 const DragHitBox = styled.li`
   position: relative;
+  z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
+
   /* &:focus-within {
     outline: 2px solid skyblue;
   } */
 `;
 
-const findDragXandYTransformation = (prevNode, nextNode) => {
-  const { offsetTop: prevY, offsetLeft: prevX } = prevNode;
-  const { offsetTop: nextY, offsetLeft: nextX } = nextNode;
-  const dragX = ((nextX - prevX) / 80) * 100;
-  const dragY = ((nextY - prevY) / 80) * 100;
-
-  return css`
-    transform: translate(${dragX}%, ${dragY}%);
-  `;
-};
-
 const UserItem = styled.div`
   pointer-events: none;
   position: absolute;
   background: ${({ hex }) => hex};
-  /* border-color: ${({ isLight }) => (isLight ? "black" : "white")}; */
   transition: 250ms;
-  /* transition-property: background transform; */
-  transition-property: background ${({ isUserDragging }) => (isUserDragging ? ", transform" : "")};
   opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)};
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
 
-${({ slideDirection, swatchRef }) => {
-  if (!swatchRef) return;
+  ${({ reorderTransform }) =>
+    css`
+      ${reorderTransform}
+    `}
 
-  switch (slideDirection) {
-    case "left":
-      return findDragXandYTransformation(swatchRef, swatchRef.previousElementSibling);
-    case "right":
-      return findDragXandYTransformation(swatchRef, swatchRef.nextElementSibling);
-    default:
-      return css`
-        transform: translate(0, 0);
-      `;
-  }
-}}
+  ${({ isUserDragging }) => {
+    // When a users is dragging a `<Swatch />` we want the "re-order" animation
+    // (simulated via CSS `transform`'s) to run.
+    //
+    // When however, the user drops a `<Swatch />` we want the items to "re-order"
+    // in the DOM (hard-coded NOT simulated). In that regard, if we are still
+    // running `transition`s on the now redundant `transform`'s then we get a
+    // flicker as the `<Swatch />` move back to their dormant state. When we apply
+    // NO `transition` the drop effect feel "solid".
+    switch (isUserDragging) {
+      case true:
+        return css`
+          transition-property: background, transform;
+        `;
+      default:
+        return css`
+          transition-property: background;
+        `;
+    }
+  }}
 `;
 
 const AppendItem = styled.li`
   padding: 10px;
 `;
-
-// const InjectItem = styled.div`
-//   height: 100%;
-//   width: 0;
-//   position: relative;
-// `;
 
 const AddButton = styled.button`
   appearance: none;
@@ -86,28 +81,6 @@ const AddButton = styled.button`
   display: block;
   width: 100%;
   height: 100%;
-`;
-
-const InjectDropPoint = styled(AddButton)`
-  width: 50px;
-  height: 50px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  opacity: ${({ isOver }) => (isOver ? 1 : 0)};
-  transition: all 200ms;
-
-  ${({ position }) =>
-    position === "left"
-      ? css`
-          left: 0;
-          transform: translate(-50%, -50%);
-        `
-      : css`
-          right: 0;
-          transform: translate(50%, -50%);
-        `}
 `;
 
 const Input = styled.input`
@@ -122,8 +95,6 @@ const Input = styled.input`
 
 export const Swatches = List;
 
-const createSwatch = hex => tinyColor(hex);
-
 export const UserSwatch = ({
   id,
   hex,
@@ -133,14 +104,10 @@ export const UserSwatch = ({
   handleDragExit,
   handleDrop,
   isUserDragging,
-  slideDirection
-  // ...dropZoneHandlers
+  createReorderTransform
 }) => {
-  // const inputNode = useRef(null); //  ref={inputNode}
-
   const [isDragged, setIsDragged] = useState(false);
   const swatchRef = useRef(null);
-  const swatch = createSwatch(hex);
   const throttled = throttle(event => handleChange(id, event.target.value), 1000);
 
   return (
@@ -149,24 +116,37 @@ export const UserSwatch = ({
       draggable
       ref={swatchRef}
       onDragStart={event => {
+        // Even though we are setting the drag n drop state through React Firefox
+        // will not initialise a DnD scenario without setting the `dataTransfer`.
+        event.dataTransfer.setData("text/plain", "banana");
         setIsDragged(true);
         handleDragStart(event);
       }}
       onDragEnd={() => setIsDragged(false)}
       onDragOver={event => {
         handleDragOver(event);
+        // MDN suggests applying `preventDefault` on specific DnD event hooks.
+        // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
         event.preventDefault();
       }}
       onDragLeave={handleDragExit}
       onDrop={event => {
         handleDrop(id);
+        // MDN suggests applying `preventDefault` on specific DnD event hooks.
+        // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
         event.preventDefault();
       }}
     >
       <UserItem
-        {...{ hex, isDragged, slideDirection, isUserDragging }}
-        isLight={swatch.isLight()}
-        swatchRef={swatchRef.current}
+        {...{ hex, isDragged, isUserDragging }}
+        reorderTransform={createReorderTransform(swatchRef.current)}
+
+        // We do not need this right now but I am keeping here for reference for
+        // future functionality.
+        // import tinyColor from "tinycolor2";
+        // const swatch = createSwatch(hex);
+        // const createSwatch = hex => tinyColor(hex);
+        // isLight={swatch.isLight()}
       />
       <Input type="color" value={hex} onChange={throttled} />
     </DragHitBox>
@@ -180,34 +160,5 @@ export const AppendSwatch = ({ handleAdd }) => {
         <FontAwesomeIcon icon={faPlus} />
       </AddButton>
     </AppendItem>
-  );
-};
-
-export const InjectSwatch = ({ id, position, handleDragOver, handleDragExit, handleDrop }) => {
-  const [isOver, setIsOver] = useState(false);
-  return (
-    // <InjectItem {...props}>
-    <InjectDropPoint
-      as="div"
-      isOver={isOver}
-      position={position}
-      onDragOver={event => {
-        handleDragOver(event);
-        setIsOver(true);
-        event.preventDefault();
-      }}
-      onDragLeave={event => {
-        setIsOver(false);
-        handleDragExit(event);
-      }}
-      onDrop={event => {
-        console.log("dropped", event.target);
-        handleDrop(position, id);
-        event.preventDefault();
-      }}
-    >
-      <FontAwesomeIcon icon={faPlus} />
-    </InjectDropPoint>
-    // </InjectItem>
   );
 };

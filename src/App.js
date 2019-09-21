@@ -2,10 +2,9 @@ import "normalize.css";
 import "drag-drop-touch";
 import React, { useState } from "react";
 import nanoid from "nanoid";
-import { Swatches, UserSwatch, AppendSwatch, InjectSwatch } from "./Swatch";
-import { Compositions, UserComposition, AddComposition } from "./Composition";
-
 import { createGlobalStyle } from "styled-components";
+import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
+import { Compositions, UserComposition, AddComposition } from "./Composition";
 
 const GlobalStyle = createGlobalStyle`
   html {
@@ -39,49 +38,51 @@ const GlobalStyle = createGlobalStyle`
 // + get color
 // ✅ set color
 
-const createSwatchKey = () => nanoid();
+// MOVE to utils!
 const SWATCH_BLACK = "#000000";
+// MOVE to utils!
+const SWATCH_WIDTH = 80;
+const createSwatchKey = () => nanoid();
 
 const createIndexComparison = idOne => ([idTwo]) => idOne === idTwo;
 const findSwatchIndexFromId = (swatches, id) => swatches.findIndex(createIndexComparison(id));
+const createReorderTransform = (x = 0, y = 0) => `transform: translate(${x}%, ${y}%);`;
 
-// Move ONLY swatches between the start and over drag indexes
-// all swatches AFTER the drag index move left
-// all swatches BEFORE the drag index move right
-
-const findDragOverSlideDirection = (swatches, dragStartId, dragOverId, swatchIndex) => {
+// Returns a thunk that can calculate the CSS transformation that reorders swatches
+// that the user drags over based not he origin of the dragged swatch.
+const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchIndex) => {
+  // Only calculate if we have the relevant information.
   const isInDragOverState = dragStartId && dragOverId && dragStartId !== dragOverId;
-  if (!isInDragOverState) return;
+  if (!isInDragOverState) return createReorderTransform;
 
+  // Only calculate if the current swatch is not the originating dragging swatch.
   const dragStartIndex = findSwatchIndexFromId(swatches, dragStartId);
   const dragOverIndex = findSwatchIndexFromId(swatches, dragOverId);
-  const isSlidableSwatch = dragStartIndex !== swatchIndex;
-  if (!isSlidableSwatch) return;
+  const shouldReorder = dragStartIndex !== swatchIndex;
+  if (!shouldReorder) return createReorderTransform;
 
-  const isBetweenDragSwatches =
-    (swatchIndex >= dragStartIndex || swatchIndex >= dragOverIndex) &&
-    (swatchIndex <= dragStartIndex || swatchIndex <= dragOverIndex);
-  if (!isBetweenDragSwatches) return;
+  // Only calculate is the current swatch falls between the originating dragged
+  // swatch and the dragged over swatch. All outside swatches remain static.
+  const isBeforeDragSwatches = swatchIndex >= dragStartIndex || swatchIndex >= dragOverIndex;
+  const isAfterDragSwatches = swatchIndex <= dragStartIndex || swatchIndex <= dragOverIndex;
+  const isBetweenDragSwatches = isBeforeDragSwatches && isAfterDragSwatches;
+  if (!isBetweenDragSwatches) return createReorderTransform;
 
-  const direction = dragStartIndex > swatchIndex ? "right" : "left";
+  // `positionReorderTransform`
+  // Based on the direction ("left" or "right") that the user is dragging we
+  // reorder the swatches that fall between the dragging indexes to fill the gap
+  // left from the originating dragged swatch.
+  return prevNode => {
+    const isDraggedRight = dragStartIndex > swatchIndex;
+    const siblingTarget = isDraggedRight ? "nextElementSibling" : "previousElementSibling";
+    const nextNode = prevNode[siblingTarget];
+    const { offsetTop: prevY, offsetLeft: prevX } = prevNode;
+    const { offsetTop: nextY, offsetLeft: nextX } = nextNode;
+    const dragX = ((nextX - prevX) / SWATCH_WIDTH) * 100;
+    const dragY = ((nextY - prevY) / SWATCH_WIDTH) * 100;
 
-  return direction;
-
-  // const dragDirection = dragOverIndex < dragStartIndex ? "left" : "right";
-  // const slideDirection = swatchIndex < dragOverIndex ? "left" : "right";
-  // const isDraggingLeft = dragOverIndex <= dragStartIndex; //  ? "left" : "right";
-  // const shouldSlideLeft = swatchIndex <= dragOverIndex; //  ? "left" : "right";
-
-  // if (isDraggingLeft && shouldSlideLeft) {
-  //   return "right";
-  // } else if (!isDraggingLeft && !shouldSlideLeft) {
-  //   return "left";
-  // } else {
-  // }
-
-  // console.log({ isDraggingLeft, shouldSlideLeft });
-
-  // return swatchIndex < dragOverIndex ? "left" : "right";
+    return createReorderTransform(dragX, dragY);
+  };
 };
 
 const App = () => {
@@ -110,10 +111,6 @@ const App = () => {
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
 
-  // const injectAddSwatchDropPoint = (event, id) => {
-  //   if (dragStartId === id) return;
-  // };
-
   const removeDragStartId = () => setDragStartId(null);
   const removeDragOverId = () => setDragOverId(null);
   const removeDragIds = () => {
@@ -121,13 +118,12 @@ const App = () => {
     removeDragOverId(null);
   };
   const dropUserSwatch = dropId => {
-    // debugger;
     if (dragStartId === dropId) return;
 
     const prevSwatches = [...swatches];
-    const dropIndex = findSwatchIndexFromId(prevSwatches, dropId); // prettier-ignore
-    const dragStartIndex = findSwatchIndexFromId(prevSwatches, dragStartId); // prettier-ignore
-    const shoudPrepend = dropIndex < dragStartIndex; // position === "left";
+    const dropIndex = findSwatchIndexFromId(prevSwatches, dropId);
+    const dragStartIndex = findSwatchIndexFromId(prevSwatches, dragStartId);
+    const shoudPrepend = dropIndex < dragStartIndex;
     const dropSwatch = [dragStartId, swatches.get(dragStartId)];
     const nextSwatches = new Map(
       prevSwatches.reduce((acc, [id, hex]) => {
@@ -143,40 +139,29 @@ const App = () => {
     );
     setSwatches(nextSwatches);
     removeDragIds();
-    // const moveSwatch = nextSwatches.get(id);
-    // moveSwatch.delete(id)
-    // const dropIndex = [...nextSwatches].indexOf([])
   };
-
-  // const createDropZoneHandlers = id => ({
-  //   handleDragOver: () => setDragOverId(id),
-  //   handleDragExit: removeDragOverId,
-  //   handleDragEnd: removeDragIds
-  // });
 
   return (
     <>
       <GlobalStyle />
       <Swatches>
         {[...swatches].map(([id, hex], swatchIndex) => {
-          // const dropZoneHandlers = createDropZoneHandlers(id);
-
           return (
             <UserSwatch
               key={id}
+              {...{ id, hex }}
               handleChange={updateUserSwatch}
               handleDragStart={() => setDragStartId(id)}
               handleDragOver={() => setDragOverId(id)}
               handleDragExit={removeDragOverId}
               handleDrop={dropUserSwatch}
               isUserDragging={!!dragStartId}
-              slideDirection={findDragOverSlideDirection(
+              createReorderTransform={calculateReorderTransform(
                 [...swatches],
                 dragStartId,
                 dragOverId,
                 swatchIndex
               )}
-              {...{ id, hex }}
             />
           );
         })}
