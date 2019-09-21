@@ -28,60 +28,40 @@ const DragHitBox = styled.li`
   } */
 `;
 
+const findDragXandYTransformation = (prevNode, nextNode) => {
+  const { offsetTop: prevY, offsetLeft: prevX } = prevNode;
+  const { offsetTop: nextY, offsetLeft: nextX } = nextNode;
+  const dragX = ((nextX - prevX) / 80) * 100;
+  const dragY = ((nextY - prevY) / 80) * 100;
+
+  return css`
+    transform: translate(${dragX}%, ${dragY}%);
+    z-index: 1;
+  `;
+};
+
 const UserItem = styled.div`
   pointer-events: none;
   position: absolute;
   background: ${({ hex }) => hex};
   /* border-color: ${({ isLight }) => (isLight ? "black" : "white")}; */
   transition: 100ms;
-transition-property: background transform;
-/* transition-property: background ${({ slideDirection }) =>
-  slideDirection ? ", transform" : ""}; */
+  /* transition-property: background transform; */
+  transition-property: background ${({ isUserDragging }) => (isUserDragging ? ", transform" : "")};
   opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)};
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
 
-${({ slideDirection, swatchRef, ...props }) => {
-  // prettier-ignore
-  // console.log('swatch props', props)
-  // xxx.nextElementSibling
-  // xxx.previousElementSibling
-
+${({ slideDirection, swatchRef }) => {
   if (!swatchRef) return;
 
-  const { offsetTop: currentY, offsetLeft: currentX } = swatchRef;
-
   switch (slideDirection) {
-    case "left": {
-      const { offsetTop: prevY, offsetLeft: prevX } = swatchRef.previousElementSibling;
-      // const dragX = Math.abs(currentX - prevX) / 80;
-      const dragX = ((prevX - currentX) / 80) * 100;
-      const dragY = ((prevY - currentY) / 80) * 100;
-
-      // console.log(``);
-      // console.log(`currentY ${currentY} | prevY ${prevY} | dragY ${dragY}`);
-      // console.log(`currentX ${currentX} | prevX ${prevX} | dragX ${dragX}`);
-
-      return css`
-        transform: translate(${dragX}%, ${dragY}%);
-        z-index: 1;
-      `;
-    }
-
-    case "right": {
-      const { offsetTop: nextY, offsetLeft: nextX } = swatchRef.nextElementSibling;
-      // const dragX = Math.abs(currentX - nextX) / 80;
-      const dragX = ((nextX - currentX) / 80) * 100;
-      const dragY = ((nextY - currentY) / 80) * 100;
-
-      return css`
-        transform: translate(${dragX}%, ${dragY}%);
-        z-index: 1;
-      `;
-    }
-
+    case "left":
+      return findDragXandYTransformation(swatchRef, swatchRef.previousElementSibling);
+    case "right":
+      return findDragXandYTransformation(swatchRef, swatchRef.nextElementSibling);
     default:
       return css`
         transform: translate(0, 0);
@@ -154,6 +134,7 @@ export const UserSwatch = ({
   handleDragOver,
   handleDragExit,
   handleDrop,
+  isUserDragging,
   slideDirection
   // ...dropZoneHandlers
 }) => {
@@ -184,7 +165,7 @@ export const UserSwatch = ({
       }}
     >
       <UserItem
-        {...{ hex, isDragged, slideDirection }}
+        {...{ hex, isDragged, slideDirection, isUserDragging }}
         isLight={swatch.isLight()}
         swatchRef={swatchRef.current}
       />

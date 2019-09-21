@@ -168,6 +168,7 @@ const App = () => {
               handleDragOver={() => setDragOverId(id)}
               handleDragExit={removeDragOverId}
               handleDrop={dropUserSwatch}
+              isUserDragging={!!dragStartId}
               slideDirection={findDragOverSlideDirection(
                 [...swatches],
                 dragStartId,
