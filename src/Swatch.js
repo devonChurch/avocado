@@ -1,11 +1,39 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled, { css } from "styled-components";
 import throttle from "lodash.throttle";
+import tinyColor from "tinycolor2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
 
 // MOVE to utils!
 const SWATCH_WIDTH = 80;
+const BORDER_WIDTH = 3;
+const FOCUS_WIDTH = 3;
+const BORDER_RADUIS = 4;
+const GRAY_500 = "#808080";
+const GRAY_600 = "#535353";
+const SPEED_500 = "250ms";
+const SPEED_700 = "500ms";
+
+const createSwatch = hex => tinyColor(hex);
+
+const createFocusColor = hex => {
+  const swatch = createSwatch(hex);
+  const isLight = swatch.isLight();
+  const modifier = isLight ? "darken" : "lighten";
+
+  return swatch[modifier](30)
+    .setAlpha(0.6)
+    .toString();
+};
+
+const positionAbsolute = css`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+`;
 
 const List = styled.ul`
   list-style: none;
@@ -22,15 +50,62 @@ const List = styled.ul`
   }
 `;
 
+const UserItem = styled.div`
+  ${positionAbsolute}
+  pointer-events: none;
+  border: ${BORDER_WIDTH}px solid ${({ hex }) => hex};
+  background: ${({ hex }) => hex};
+  color: ${({ hex }) => hex};
+  transition: ${SPEED_700};
+  transition-property: background, transform, border;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ${({ hex, isUserDragging, isDragged }) => {
+    switch (true) {
+      case isDragged:
+        return css`
+          border-color: ${hex};
+          border-radius: ${BORDER_RADUIS}px;
+          background: ${createSwatch(hex)
+            .setAlpha(0.3)
+            .toString()};
+          transform: scale(0.8);
+        `;
+      case isUserDragging:
+        return css`
+          border-radius: ${BORDER_RADUIS}px;
+          transform: scale(0.8);
+        `;
+      default:
+        return css`
+          transition-property: transform;
+        `;
+    }
+  }}
+`;
+
 const DragHitBox = styled.li`
   position: relative;
   z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
-  transition: 250ms;
+  transition: ${SPEED_500};
   transition-property: opacity, transform;
 
-  /* &:focus-within {
-    outline: 2px solid skyblue;
-  } */
+  ${({ isDragged }) =>
+    !isDragged &&
+    css`
+    &:focus-within {
+      z-index: 10;
+
+      ${UserItem} {
+        box-shadow: 0 0 0 ${FOCUS_WIDTH}px ${({ hex }) => createFocusColor(hex)};
+        border-radius: ${BORDER_RADUIS}px;
+        outline: 0;
+      }
+  `}
+  }
 
   &.swatch-enter,
   &.swatch-exit {
@@ -45,43 +120,9 @@ const DragHitBox = styled.li`
   }
 `;
 
-const UserItem = styled.div`
-  pointer-events: none;
-  position: absolute;
-  background: ${({ hex }) => hex};
-  transition: 500ms;
-  transition-property: background, transform, border;
-  /* opacity: ${({ isDragged }) => (isDragged ? 0.5 : 1)}; */
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-
-  ${({ isUserDragging, isDragged }) => {
-    switch (true) {
-      case isUserDragging:
-        return css`
-          border-radius: 4px;
-          transform: scale(0.9);
-        `;
-      case isDragged:
-        return css`
-          border-radius: 4px;
-          transform: scale(1.1);
-        `;
-      default:
-        return;
-    }
-  }}
-`;
-
 const ReorderTransformation = styled.div`
-  transition: 250ms;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  ${positionAbsolute}
+  transition: ${SPEED_500};
 
   ${({ reorderTransform }) =>
     css`
@@ -111,46 +152,50 @@ const ReorderTransformation = styled.div`
 `;
 
 const AppendItem = styled.li`
-  padding: 10px;
+  /* padding: 10px; */
 `;
 
 const AddButton = styled.button`
   appearance: none;
-  border: 2px dashed;
-  border-radius: 4px;
-  border-color: ${({ isTargeted }) => (isTargeted ? "darkgreen" : "gray")};
-  color: ${({ isTargeted }) => (isTargeted ? "darkgreen" : "gray")};
+  border: ${BORDER_WIDTH}px solid;
+  border-radius: ${BORDER_RADUIS}px;
+  border-color: ${GRAY_600};
+  color: ${GRAY_600};
   cursor: pointer;
-  background: ${({ isTargeted }) => (isTargeted ? "lightgreen" : "lightgray")};
   display: block;
   width: 100%;
   height: 100%;
-  transition: transform 250ms;
+  transition: ${SPEED_500};
+  transition-property: background, transform;
 
   ${({ isTargeted }) =>
     isTargeted
       ? css`
-          border-color: darkgreen;
-          color: darkgreen;
-          background: lightgreen;
-          transform: scale(1.05);
+          background: ${createSwatch(GRAY_600)
+            .setAlpha(0.6)
+            .toString()};
+          transform: scale(0.85);
         `
       : css`
-          border-color: gray;
-          color: gray;
-          background: lightgray;
+          background: ${createSwatch(GRAY_600)
+            .setAlpha(0.3)
+            .toString()};
+          transform: scale(0.8);
         `};
+
+  &:focus {
+    box-shadow: 0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(GRAY_600)};
+    outline: 0;
+  }
 `;
 
 const Input = styled.input`
+  ${positionAbsolute}
   appearance: none;
   opacity: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
 `;
+
+export const SwatchIcon = styled(FontAwesomeIcon)``;
 
 export const Swatches = List;
 
@@ -172,7 +217,7 @@ export const UserSwatch = ({
 
   return (
     <DragHitBox
-      {...{ isDragged }}
+      {...{ isDragged, hex }}
       draggable
       ref={swatchRef}
       onDragStart={event => {
@@ -204,16 +249,9 @@ export const UserSwatch = ({
         {...{ isDragged, isUserDragging }}
         reorderTransform={createReorderTransform(swatchRef.current)}
       >
-        <UserItem
-          {...{ hex, isDragged, isUserDragging }}
-
-          // We do not need this right now but I am keeping here for reference for
-          // future functionality.
-          // import tinyColor from "tinycolor2";
-          // const swatch = createSwatch(hex);
-          // const createSwatch = hex => tinyColor(hex);
-          // isLight={swatch.isLight()}
-        />
+        <UserItem {...{ hex, isDragged, isUserDragging }}>
+          <SwatchIcon icon={faArrowsAlt} size="2x" />
+        </UserItem>
         <Input type="color" value={hex} onChange={throttled} />
       </ReorderTransformation>
     </DragHitBox>
@@ -244,7 +282,7 @@ export const AppendSwatch = ({ handleClick, handleDrop }) => {
           event.preventDefault();
         }}
       >
-        <FontAwesomeIcon icon={faPlus} />
+        <SwatchIcon icon={faPlus} size="2x" />
       </AddButton>
     </AppendItem>
   );

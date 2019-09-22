@@ -151,22 +151,10 @@ const App = () => {
   return (
     <>
       <GlobalStyle />
-      {/* <Swatches as="ul"> */}
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([id, hex], swatchIndex) => {
           return (
-            <CSSTransition
-              key={id}
-              // in={true}
-              timeout={250}
-              classNames="swatch"
-              // classNames={{
-              //   appear: "swatch",
-              //   enter: 'swatch--enter',
-              //   enterActive: "swatch--enter-active",
-              //   exitActive: "swatch--exit"
-              // }}
-            >
+            <CSSTransition key={id} timeout={250} classNames="swatch">
               <UserSwatch
                 {...{ id, hex }}
                 handleChange={updateUserSwatch}
@@ -188,7 +176,6 @@ const App = () => {
         })}
         <AppendSwatch handleClick={addNewSwatch} handleDrop={duplicateAndAppendNewSwatch} />
       </TransitionGroup>
-      {/* </Swatches> */}
       {/* <Compositions>
         {[...swatches].map(([id, hex]) => (
           <UserComposition key={id} handleChange={updateUserSwatch} {...{ id, hex }} />
