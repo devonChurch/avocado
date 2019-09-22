@@ -25,10 +25,24 @@ const List = styled.ul`
 const DragHitBox = styled.li`
   position: relative;
   z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
+  transition: 250ms;
+  transition-property: opacity, transform;
 
   /* &:focus-within {
     outline: 2px solid skyblue;
   } */
+
+  &.swatch-enter,
+  &.swatch-exit {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  &.swatch-enter-active,
+  &.swatch-exit-active {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const UserItem = styled.div`

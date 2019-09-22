@@ -1,6 +1,7 @@
 import "normalize.css";
 import "drag-drop-touch";
 import React, { useState } from "react";
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
@@ -150,30 +151,44 @@ const App = () => {
   return (
     <>
       <GlobalStyle />
-      <Swatches>
+      {/* <Swatches as="ul"> */}
+      <TransitionGroup component={Swatches}>
         {[...swatches].map(([id, hex], swatchIndex) => {
           return (
-            <UserSwatch
+            <CSSTransition
               key={id}
-              {...{ id, hex }}
-              handleChange={updateUserSwatch}
-              handleDragStart={() => setDragStartId(id)}
-              handleDragOver={() => setDragOverId(id)}
-              handleDragExit={removeDragOverId}
-              handleDragEnd={removeDragIds}
-              handleDrop={moveSwatchToNewLocation}
-              isUserDragging={!!dragStartId}
-              createReorderTransform={calculateReorderTransform(
-                [...swatches],
-                dragStartId,
-                dragOverId,
-                swatchIndex
-              )}
-            />
+              // in={true}
+              timeout={250}
+              classNames="swatch"
+              // classNames={{
+              //   appear: "swatch",
+              //   enter: 'swatch--enter',
+              //   enterActive: "swatch--enter-active",
+              //   exitActive: "swatch--exit"
+              // }}
+            >
+              <UserSwatch
+                {...{ id, hex }}
+                handleChange={updateUserSwatch}
+                handleDragStart={() => setDragStartId(id)}
+                handleDragOver={() => setDragOverId(id)}
+                handleDragExit={removeDragOverId}
+                handleDragEnd={removeDragIds}
+                handleDrop={moveSwatchToNewLocation}
+                isUserDragging={!!dragStartId}
+                createReorderTransform={calculateReorderTransform(
+                  [...swatches],
+                  dragStartId,
+                  dragOverId,
+                  swatchIndex
+                )}
+              />
+            </CSSTransition>
           );
         })}
         <AppendSwatch handleClick={addNewSwatch} handleDrop={duplicateAndAppendNewSwatch} />
-      </Swatches>
+      </TransitionGroup>
+      {/* </Swatches> */}
       {/* <Compositions>
         {[...swatches].map(([id, hex]) => (
           <UserComposition key={id} handleChange={updateUserSwatch} {...{ id, hex }} />
