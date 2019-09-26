@@ -17,15 +17,24 @@ const SPEED_700 = "500ms";
 
 const createSwatch = hex => tinyColor(hex);
 
+const FOCUS_SHADOW = (() => {
+  const swatch = createSwatch("#000").setAlpha(0.25);
+  return `0 0 13px ${FOCUS_WIDTH}px ${swatch}`;
+})();
+
 const createFocusColor = hex => {
   const swatch = createSwatch(hex);
   const isLight = swatch.isLight();
   const modifier = isLight ? "darken" : "lighten";
 
-  return swatch[modifier](30)
+  return swatch[modifier](20)
     .setAlpha(0.6)
     .toString();
 };
+
+const createFocusState = hex => createFocusColor(hex);
+const createFocusStateWithShadow = hex =>
+  `${FOCUS_SHADOW}, 0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
 
 const positionAbsolute = css`
   position: absolute;
@@ -56,23 +65,28 @@ const UserItem = styled.div`
   border: ${BORDER_WIDTH}px solid ${({ hex }) => hex};
   background: ${({ hex }) => hex};
   color: ${({ hex }) => hex};
-  transition: ${SPEED_700};
-  transition-property: background, transform, border;
+  transition-property: background, box-shadow, transform, border;
+  transition-duration: ${SPEED_700}, ${SPEED_500}, ${SPEED_700}, ${SPEED_700};
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  ${({ hex, isUserDragging, isDragged }) => {
+  ${({ hex, isUserDragging, isDragged, isAboutToDrag }) => {
     switch (true) {
       case isDragged:
         return css`
+          border-color: white;
+          background: white;
+          border-radius: ${BORDER_RADUIS}px;
+          transform: scale(0.8);
+        `;
+      case isAboutToDrag:
+        return css`
           border-color: ${hex};
           border-radius: ${BORDER_RADUIS}px;
-          background: ${createSwatch(hex)
-            .setAlpha(0.3)
-            .toString()};
-          transform: scale(0.8);
+          transition-duration: 0ms;
+          transform: scale(0.9);
         `;
       case isUserDragging:
         return css`
@@ -80,9 +94,7 @@ const UserItem = styled.div`
           transform: scale(0.8);
         `;
       default:
-        return css`
-          transition-property: transform;
-        `;
+        return css``;
     }
   }}
 `;
@@ -93,19 +105,20 @@ const DragHitBox = styled.li`
   transition: ${SPEED_500};
   transition-property: opacity, transform;
 
-  ${({ isDragged }) =>
-    !isDragged &&
+  ${({ isUserDragging }) =>
+    !isUserDragging &&
     css`
-    &:focus-within {
-      z-index: 10;
+      &:focus-within,
+      &:hover {
+        z-index: 10;
 
-      ${UserItem} {
-        box-shadow: 0 0 0 ${FOCUS_WIDTH}px ${({ hex }) => createFocusColor(hex)};
-        border-radius: ${BORDER_RADUIS}px;
-        outline: 0;
+        ${UserItem} {
+          box-shadow: ${({ hex }) => createFocusStateWithShadow(hex)};
+          border-radius: ${BORDER_RADUIS}px;
+          outline: 0;
+        }
       }
-  `}
-  }
+    `}
 
   &.swatch-enter,
   &.swatch-exit {
@@ -166,7 +179,7 @@ const AddButton = styled.button`
   width: 100%;
   height: 100%;
   transition: ${SPEED_500};
-  transition-property: background, transform;
+  transition-property: box-shadow, background, transform;
 
   ${({ isTargeted }) =>
     isTargeted
@@ -183,8 +196,9 @@ const AddButton = styled.button`
           transform: scale(0.8);
         `};
 
-  &:focus {
-    box-shadow: 0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(GRAY_600)};
+  &:focus,
+  &:hover {
+    box-shadow: ${createFocusStateWithShadow(GRAY_600)};
     outline: 0;
   }
 `;
@@ -193,6 +207,21 @@ const Input = styled.input`
   ${positionAbsolute}
   appearance: none;
   opacity: 0;
+`;
+
+export const DragSwatch = styled.div`
+  background: red;
+  border-radius: ${BORDER_RADUIS}px;
+  height: ${SWATCH_WIDTH}px;
+  width: ${SWATCH_WIDTH}px;
+`;
+
+export const DragItem = styled.div`
+${positionAbsolute}
+  background: ${({ hex }) => hex};
+  border-radius: ${BORDER_RADUIS}px;
+  height: ${SWATCH_WIDTH}px;
+  width: ${SWATCH_WIDTH}px;
 `;
 
 export const SwatchIcon = styled(FontAwesomeIcon)``;
@@ -212,18 +241,43 @@ export const UserSwatch = ({
   createReorderTransform
 }) => {
   const [isDragged, setIsDragged] = useState(false);
+  const [isAboutToDrag, setIsAboutToDrag] = useState(false);
   const swatchRef = useRef(null);
+  const dragRef = useRef(null);
   const throttled = throttle(event => handleChange(id, event.target.value), 1000);
 
   return (
     <DragHitBox
-      {...{ isDragged, hex }}
+      {...{ isDragged, isUserDragging, hex }}
       draggable
       ref={swatchRef}
       onDragStart={event => {
+        setIsAboutToDrag(false);
         // Even though we are setting the drag n drop state through React Firefox
         // will not initialise a DnD scenario without setting the `dataTransfer`.
         event.dataTransfer.setData("text/plain", "banana");
+
+        // var img = new Image();
+        // img.src = "example.gif";
+        // img.src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><style>.a{fill:#ddedee;}.b{fill:#f16421;}</style></defs><title>squirrel-touch-icon</title><rect class="a" width="512" height="512"/><path class="b" d="M94,172.5c0-54.3,48.8-82.7,150.6-92L239.9,43h32.2l-4.7,37.6c101.8,9.3,150.5,37.7,150.5,92,0,31.8-24.3,39.7-25.3,40.1l-134-70.8-139.4,71v-0.2S94,205,94,172.5M278.8,456.1c-5.5,1.3-16.5,3.9-22.8,13.6-6.2-10.2-17.3-12.3-22.8-13.6-104.1-28.7-125.4-105.8-115-229.9l140.5-71.6,135.2,71.4c10.4,124.3-10.9,201.4-115,230.1"/></svg>`;
+        // img.src = "https://www.squirrel.co.nz/media/2056/homepage-banner2.png";
+        // event.dataTransfer.setDragImage(img, 10, 10);
+
+        // const shape = document.createElement("div");
+        // shape.style.width = "50px";
+        // shape.style.height = "50px";
+        // shape.style.background = "red";
+        // document.body.appendChild(shape);
+
+        // const shape = document.getElementById("drag-swatch");
+        // shape.style.opacity = "1";
+        // console.log(shape);
+        // event.dataTransfer.setDragImage(shape, 10, 10);
+        // shape.style.opacity = "0";
+
+        // console.log(dragRef.current);
+        // event.dataTransfer.setDragImage(dragRef.current, 10, 10);
+
         setIsDragged(true);
         handleDragStart();
       }}
@@ -244,13 +298,17 @@ export const UserSwatch = ({
         // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
         event.preventDefault();
       }}
+      onMouseDown={() => setIsAboutToDrag(true)}
+      onMouseUp={() => setIsAboutToDrag(false)}
     >
       <ReorderTransformation
         {...{ isDragged, isUserDragging }}
         reorderTransform={createReorderTransform(swatchRef.current)}
       >
-        <UserItem {...{ hex, isDragged, isUserDragging }}>
-          <SwatchIcon icon={faArrowsAlt} size="2x" />
+        <UserItem {...{ hex, isDragged, isUserDragging, isAboutToDrag }}>
+          {/* <DragItem ref={dragRef} {...{ hex, isDragged, isUserDragging }}> */}
+          {/* <SwatchIcon icon={faArrowsAlt} size="2x" /> */}
+          {/* </DragItem> */}
         </UserItem>
         <Input type="color" value={hex} onChange={throttled} />
       </ReorderTransformation>

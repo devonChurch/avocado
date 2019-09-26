@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
-import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
+import { Swatches, UserSwatch, AppendSwatch, DragSwatch } from "./Swatch";
 import { Compositions, UserComposition, AddComposition } from "./Composition";
 
 const GlobalStyle = createGlobalStyle`
@@ -151,6 +151,9 @@ const App = () => {
   return (
     <>
       <GlobalStyle />
+      {/* <div style={{ width: 0, height: 0, overflow: "hidden" }}> */}
+      {/* <DragSwatch id="drag-swatch" /> */}
+      {/* </div> */}
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([id, hex], swatchIndex) => {
           return (
