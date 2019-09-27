@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styled, { css } from "styled-components";
 import throttle from "lodash.throttle";
 import tinyColor from "tinycolor2";
@@ -9,32 +9,47 @@ import { faPlus, faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
 const SWATCH_WIDTH = 80;
 const BORDER_WIDTH = 3;
 const FOCUS_WIDTH = 3;
+
 const BORDER_RADUIS = 4;
-const GRAY_500 = "#808080";
-const GRAY_600 = "#535353";
+
+const WHITE = "#fff";
+
+const GRAY_100 = "#EAF0EE";
+const GRAY_300 = "#c8d5d1";
+const GRAY_500 = "#8DA79F";
+const GRAY_700 = "#5c716b";
+const GRAY_900 = "#40504C";
+
 const SPEED_500 = "250ms";
 const SPEED_700 = "500ms";
 
+const SCALE_300 = 0.8;
+const SCALE_400 = 0.9;
+const SCALE_500 = 1;
+
 const createSwatch = hex => tinyColor(hex);
 
-const FOCUS_SHADOW = (() => {
-  const swatch = createSwatch("#000").setAlpha(0.25);
-  return `0 0 13px ${FOCUS_WIDTH}px ${swatch}`;
+const { 0: FOCUS_SHADOW_0, 500: FOCUS_SHADOW_500 } = (() => {
+  const swatch = createSwatch("#000");
+
+  return {
+    0: `0 0 0 ${FOCUS_WIDTH}px ${swatch.setAlpha(0.15)}`,
+    500: `0 0 13px ${FOCUS_WIDTH}px ${swatch.setAlpha(0.25)}`
+  };
 })();
 
 const createFocusColor = hex => {
   const swatch = createSwatch(hex);
   const isLight = swatch.isLight();
   const modifier = isLight ? "darken" : "lighten";
+  const strength = isLight ? 10 : 30;
 
-  return swatch[modifier](20)
-    .setAlpha(0.6)
-    .toString();
+  return swatch[modifier](strength).toString();
 };
 
-const createFocusState = hex => createFocusColor(hex);
-const createFocusStateWithShadow = hex =>
-  `${FOCUS_SHADOW}, 0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
+const createFocusborder = hex => `0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
+const createFocusState = hex => createFocusborder(hex);
+const createFocusStateWithShadow = hex => `${FOCUS_SHADOW_500}, ${createFocusborder(hex)}`;
 
 const positionAbsolute = css`
   position: absolute;
@@ -45,14 +60,15 @@ const positionAbsolute = css`
 `;
 
 const List = styled.ul`
+  display: grid;
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
   grid-gap: 0;
-  grid-template-columns: repeat(auto-fill, ${SWATCH_WIDTH}px);
   grid-template-rows: repeat(auto-fill, ${SWATCH_WIDTH}px);
+  grid-template-columns: repeat(auto-fill, ${SWATCH_WIDTH}px);
 
+  /** Regardless of content we ALWAYS conform to the rigid grid system dimensions. */
   > * {
     height: ${SWATCH_WIDTH}px;
     width: ${SWATCH_WIDTH}px;
@@ -61,52 +77,92 @@ const List = styled.ul`
 
 const UserItem = styled.div`
   ${positionAbsolute}
-  pointer-events: none;
-  border: ${BORDER_WIDTH}px solid ${({ hex }) => hex};
   background: ${({ hex }) => hex};
-  color: ${({ hex }) => hex};
-  transition-property: background, box-shadow, transform, border;
+  pointer-events: none;
   transition-duration: ${SPEED_700}, ${SPEED_500}, ${SPEED_700}, ${SPEED_700};
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition-property: background, box-shadow, transform, border;
 
   ${({ hex, isUserDragging, isDragged, isAboutToDrag }) => {
-    switch (true) {
-      case isDragged:
-        return css`
-          border-color: white;
-          background: white;
-          border-radius: ${BORDER_RADUIS}px;
-          transform: scale(0.8);
-        `;
-      case isAboutToDrag:
-        return css`
-          border-color: ${hex};
-          border-radius: ${BORDER_RADUIS}px;
-          transition-duration: 0ms;
-          transform: scale(0.9);
-        `;
-      case isUserDragging:
-        return css`
-          border-radius: ${BORDER_RADUIS}px;
-          transform: scale(0.8);
-        `;
-      default:
-        return css``;
+    let styles = "";
+
+    if (isDragged || isUserDragging || isAboutToDrag) {
+      styles += `
+        border-radius: ${BORDER_RADUIS}px;
+      `;
     }
+
+    if (isDragged || isUserDragging) {
+      styles += `
+        transform: scale(${SCALE_300});
+      `;
+    }
+
+    /**
+     * We want the original location where the swatch was dragged from to be an
+     * "empty" slot (by default it just sits there).
+     *
+     * + If we change `opacity: 0;` then that ALSO changes the dragged item
+     *   attached to the users mouse position.
+     *
+     * + Changing `background: white;` ONLY changes the placeholder "dormant"
+     *   swatch =)
+     */
+    if (isDragged) {
+      styles += `
+        background: ${WHITE};
+      `;
+    }
+
+    /**
+     * The browser will take a "snapshot" or the dragged swatch IMMEDIATELY after
+     * dragging starts. The "snapshot" is a square around the DOM element and
+     * crops out anything NOT in that box (like `outline` and `box-shadow`). In
+     * that regard we need to have the dragging swatch BEFORE dragging starts.
+     *
+     * To do this we remove and `transition-duration` (so that things happen
+     * immediately - getting caught half way through a transition looks disjointed)
+     * and change the following:
+     *
+     * + `scale` shrink the main item (including `:focus` `box-shadow`) INSIDE
+     *   the crop box. This actually look pretty good as it simulates an "on press"
+     *   aesthetic.
+     *
+     * + Remove the drop shadow as it bleeds off the swatch crop area and can be
+     *   seen in the swatch rounded corners.
+     */
+    if (isAboutToDrag) {
+      styles += `
+        box-shadow: ${({ hex }) => createFocusState(hex)} !important;
+        transition-duration: 0ms;
+        transform: scale(${SCALE_400});
+      `;
+    }
+
+    return css`
+      ${styles}
+    `;
   }}
 `;
 
 const DragHitBox = styled.li`
   position: relative;
-  z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
-  transition: ${SPEED_500};
+  transition-duration: ${SPEED_500};
   transition-property: opacity, transform;
+  /**
+   * When an item is being dragged we send it to the BACK so that ALL other
+   * swatches can overlap when the "recording" animation is running. The dragging
+   * swatch is also completely white and therefore CANNOT reside on top of
+   * anything else.
+   */
+  z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
 
   ${({ isUserDragging }) =>
     !isUserDragging &&
+    /**
+     * Do NOT show these interaction states on ANY swatches when the user is
+     * dragging as swatches will all be changing their `:hover` states on/off
+     * throughout the dragging process.
+     */
     css`
       &:focus-within,
       &:hover {
@@ -120,16 +176,18 @@ const DragHitBox = styled.li`
       }
     `}
 
+  /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
   &.swatch-exit {
     opacity: 0;
     transform: scale(0);
   }
 
+  /** React CSSTransition animation property when an item is in its ACTIVE state. */
   &.swatch-enter-active,
   &.swatch-exit-active {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(${SCALE_500});
   }
 `;
 
@@ -143,14 +201,16 @@ const ReorderTransformation = styled.div`
     `}
 
   ${({ isUserDragging }) => {
-    // When a users is dragging a `<Swatch />` we want the "re-order" animation
-    // (simulated via CSS `transform`'s) to run.
-    //
-    // When however, the user drops a `<Swatch />` we want the items to "re-order"
-    // in the DOM (hard-coded NOT simulated). In that regard, if we are still
-    // running `transition`s on the now redundant `transform`'s then we get a
-    // flicker as the `<Swatch />` move back to their dormant state. When we apply
-    // NO `transition` the drop effect feel "solid".
+    /*
+     * When a users is dragging a `<Swatch />` we want the "re-order" animation
+     * (simulated via CSS `transform`'s) to run.
+     *
+     * When however, the user drops a `<Swatch />` we want the items to "re-order"
+     * in the DOM (hard-coded NOT simulated). In that regard, if we are still
+     * running `transition`s on the now redundant `transform`'s then we get a
+     * flicker as the `<Swatch />` move back to their dormant state. When we apply
+     * NO `transition` the drop effect feel "solid".
+     */
     switch (isUserDragging) {
       case true:
         return css`
@@ -170,35 +230,30 @@ const AppendItem = styled.li`
 
 const AddButton = styled.button`
   appearance: none;
-  border: ${BORDER_WIDTH}px solid;
+  border: ${BORDER_WIDTH}px solid ${GRAY_900};
   border-radius: ${BORDER_RADUIS}px;
-  border-color: ${GRAY_600};
-  color: ${GRAY_600};
+  color: ${GRAY_900};
   cursor: pointer;
   display: block;
-  width: 100%;
   height: 100%;
-  transition: ${SPEED_500};
+  transition-duration: ${SPEED_500};
   transition-property: box-shadow, background, transform;
+  width: 100%;
 
   ${({ isTargeted }) =>
     isTargeted
       ? css`
-          background: ${createSwatch(GRAY_600)
-            .setAlpha(0.6)
-            .toString()};
-          transform: scale(0.85);
+          background: ${GRAY_500};
+          transform: scale(${SCALE_400});
         `
       : css`
-          background: ${createSwatch(GRAY_600)
-            .setAlpha(0.3)
-            .toString()};
-          transform: scale(0.8);
+          background: ${GRAY_300};
+          transform: scale(${SCALE_300});
         `};
 
   &:focus,
   &:hover {
-    box-shadow: ${createFocusStateWithShadow(GRAY_600)};
+    box-shadow: ${createFocusStateWithShadow(GRAY_300)};
     outline: 0;
   }
 `;
@@ -207,21 +262,6 @@ const Input = styled.input`
   ${positionAbsolute}
   appearance: none;
   opacity: 0;
-`;
-
-export const DragSwatch = styled.div`
-  background: red;
-  border-radius: ${BORDER_RADUIS}px;
-  height: ${SWATCH_WIDTH}px;
-  width: ${SWATCH_WIDTH}px;
-`;
-
-export const DragItem = styled.div`
-${positionAbsolute}
-  background: ${({ hex }) => hex};
-  border-radius: ${BORDER_RADUIS}px;
-  height: ${SWATCH_WIDTH}px;
-  width: ${SWATCH_WIDTH}px;
 `;
 
 export const SwatchIcon = styled(FontAwesomeIcon)``;
@@ -243,59 +283,50 @@ export const UserSwatch = ({
   const [isDragged, setIsDragged] = useState(false);
   const [isAboutToDrag, setIsAboutToDrag] = useState(false);
   const swatchRef = useRef(null);
-  const dragRef = useRef(null);
-  const throttled = throttle(event => handleChange(id, event.target.value), 1000);
 
   return (
     <DragHitBox
       {...{ isDragged, isUserDragging, hex }}
+      key={`${id}_DragHitBox`}
       draggable
       ref={swatchRef}
       onDragStart={event => {
         setIsAboutToDrag(false);
-        // Even though we are setting the drag n drop state through React Firefox
-        // will not initialise a DnD scenario without setting the `dataTransfer`.
+        /*
+         * Even though we are setting the drag n drop state through React Firefox
+         * will not initialise a DnD scenario without setting the `dataTransfer`.
+         */
         event.dataTransfer.setData("text/plain", "banana");
 
-        // var img = new Image();
-        // img.src = "example.gif";
-        // img.src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><style>.a{fill:#ddedee;}.b{fill:#f16421;}</style></defs><title>squirrel-touch-icon</title><rect class="a" width="512" height="512"/><path class="b" d="M94,172.5c0-54.3,48.8-82.7,150.6-92L239.9,43h32.2l-4.7,37.6c101.8,9.3,150.5,37.7,150.5,92,0,31.8-24.3,39.7-25.3,40.1l-134-70.8-139.4,71v-0.2S94,205,94,172.5M278.8,456.1c-5.5,1.3-16.5,3.9-22.8,13.6-6.2-10.2-17.3-12.3-22.8-13.6-104.1-28.7-125.4-105.8-115-229.9l140.5-71.6,135.2,71.4c10.4,124.3-10.9,201.4-115,230.1"/></svg>`;
-        // img.src = "https://www.squirrel.co.nz/media/2056/homepage-banner2.png";
-        // event.dataTransfer.setDragImage(img, 10, 10);
-
-        // const shape = document.createElement("div");
-        // shape.style.width = "50px";
-        // shape.style.height = "50px";
-        // shape.style.background = "red";
-        // document.body.appendChild(shape);
-
-        // const shape = document.getElementById("drag-swatch");
-        // shape.style.opacity = "1";
-        // console.log(shape);
-        // event.dataTransfer.setDragImage(shape, 10, 10);
-        // shape.style.opacity = "0";
-
-        // console.log(dragRef.current);
-        // event.dataTransfer.setDragImage(dragRef.current, 10, 10);
+        /**
+         * Set the drag image that will "stick" to the users mouse position during
+         * the entire drag sequence.
+         */
+        const offset = SWATCH_WIDTH / 2;
+        event.dataTransfer.setDragImage(swatchRef.current, offset, offset);
 
         setIsDragged(true);
-        handleDragStart();
+        handleDragStart(id);
       }}
       onDragEnd={() => {
         setIsDragged(false);
         handleDragEnd();
       }}
       onDragOver={event => {
-        handleDragOver();
-        // MDN suggests applying `preventDefault` on specific DnD event hooks.
-        // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+        handleDragOver(id);
+        /*
+         * MDN suggests applying `preventDefault` on specific DnD event hooks.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+         */
         event.preventDefault();
       }}
       onDragLeave={handleDragExit}
       onDrop={event => {
         handleDrop(id);
-        // MDN suggests applying `preventDefault` on specific DnD event hooks.
-        // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+        /*
+         * MDN suggests applying `preventDefault` on specific DnD event hooks.
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+         */
         event.preventDefault();
       }}
       onMouseDown={() => setIsAboutToDrag(true)}
@@ -303,14 +334,16 @@ export const UserSwatch = ({
     >
       <ReorderTransformation
         {...{ isDragged, isUserDragging }}
+        key={`${id}_ReorderTransformation`}
         reorderTransform={createReorderTransform(swatchRef.current)}
       >
-        <UserItem {...{ hex, isDragged, isUserDragging, isAboutToDrag }}>
-          {/* <DragItem ref={dragRef} {...{ hex, isDragged, isUserDragging }}> */}
-          {/* <SwatchIcon icon={faArrowsAlt} size="2x" /> */}
-          {/* </DragItem> */}
-        </UserItem>
-        <Input type="color" value={hex} onChange={throttled} />
+        <UserItem key={`${id}_UserItem`} {...{ hex, isDragged, isUserDragging, isAboutToDrag }} />
+        <Input
+          key={`${id}_Input`}
+          type="color"
+          value={hex}
+          onChange={event => handleChange(id, event.target.value)}
+        />
       </ReorderTransformation>
     </DragHitBox>
   );
@@ -324,8 +357,10 @@ export const AppendSwatch = ({ handleClick, handleDrop }) => {
         {...{ isTargeted }}
         onClick={handleClick}
         onDragOver={event => {
-          // An `onDragOver` event MUST be present in order for a `onDrop` to
-          // trigger!
+          /*
+           * An `onDragOver` event MUST be present in order for a `onDrop` to
+           * trigger!
+           */
           setIsTargeted(true);
           event.preventDefault();
         }}
@@ -335,8 +370,10 @@ export const AppendSwatch = ({ handleClick, handleDrop }) => {
         onDrop={event => {
           handleDrop();
           setIsTargeted(false);
-          // MDN suggests applying `preventDefault` on specific DnD event hooks.
-          // @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+          /*
+           * MDN suggests applying `preventDefault` on specific DnD event hooks.
+           * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+           */
           event.preventDefault();
         }}
       >
