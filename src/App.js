@@ -86,6 +86,9 @@ const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchInde
 };
 
 const App = () => {
+  /**
+   * SWATCHES:
+   */
   const [swatches, setSwatches] = useState(
     new Map([
       ["1", "#0707ff"],
@@ -148,6 +151,17 @@ const App = () => {
     removeDragIds();
   };
 
+  /**
+   * COMPOSITIONS:
+   */
+  const [compositions, setCompositions] = useState(
+    new Map([
+      ["1", { baseId: "1", contentId: "2" }],
+      ["2", { baseId: "3", contentId: "4" }],
+      ["3", { baseId: "5", contentId: "6" }],
+      ["4", { baseId: "7", contentId: "8" }]
+    ])
+  );
   return (
     <>
       <GlobalStyle />
@@ -159,8 +173,8 @@ const App = () => {
                 key={id}
                 {...{ id, hex }}
                 handleChange={updateUserSwatch}
-                handleDragStart={setDragStartId} // {() => setDragStartId(id)}
-                handleDragOver={setDragOverId} // {() => setDragOverId(id)}
+                handleDragStart={setDragStartId}
+                handleDragOver={setDragOverId}
                 handleDragExit={removeDragOverId}
                 handleDragEnd={removeDragIds}
                 handleDrop={moveSwatchToNewLocation}
@@ -177,12 +191,25 @@ const App = () => {
         })}
         <AppendSwatch handleClick={addNewSwatch} handleDrop={duplicateAndAppendNewSwatch} />
       </TransitionGroup>
-      {/* <Compositions>
-        {[...swatches].map(([id, hex]) => (
-          <UserComposition key={id} handleChange={updateUserSwatch} {...{ id, hex }} />
-        ))}
-        <AddComposition handleAdd={addNewSwatch}/>
-      </Compositions> */}
+      <Compositions>
+        {[...compositions].map(comp => {
+          console.log(comp);
+          const [compId, { baseId, contentId }] = comp;
+          console.log(comp[1].baseId, comp[1].contentId);
+
+          console.log({ compId, baseId, contentId });
+
+          return (
+            <UserComposition
+              key={compId}
+              {...{ compId }}
+              baseHex={swatches.get(baseId)}
+              contentHex={swatches.get(contentId)}
+            />
+          );
+        })}
+        <AddComposition handleAdd={addNewSwatch} />
+      </Compositions>
     </>
   );
 };

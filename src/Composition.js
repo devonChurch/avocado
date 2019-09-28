@@ -5,22 +5,28 @@ import throttle from "lodash.throttle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
+const COMP_WIDTH = 160;
+
 const List = styled.ul`
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-gap: 0; // 10px;
+  grid-gap: 10px;
   grid-template-columns: repeat(auto-fill, 200px);
   grid-template-rows: repeat(auto-fill, 200px);
 
   > * {
-    height: 80px;
-    width: 80px;
+    height: 100px;
+    width: ${COMP_WIDTH}px;
   }
 `;
 
 const UserItem = styled.li`
+  background: ${({ baseHex }) => baseHex};
+  color: ${({ contentHex }) => contentHex};
+  height: 100%;
+  width: 100%;
   position: relative;
 `;
 
@@ -37,16 +43,8 @@ const AddButton = styled.button`
 
 export const Compositions = List;
 
-export const UserComposition = ({ id, hex, handleChange }) => {
-  const throttled = throttle(event => handleChange(id, event.target.value), 1000);
-
-  return (
-    <UserItem
-      onDragStart={event => {
-        console.log("dragstart", event, event.target);
-      }}
-    ></UserItem>
-  );
+export const UserComposition = ({ idComp, baseHex, contentHex }) => {
+  return <UserItem {...{ baseHex, contentHex }}>CONTENT</UserItem>;
 };
 
 export const AddComposition = ({ handleAdd }) => {
