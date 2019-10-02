@@ -1,11 +1,12 @@
 import "normalize.css";
 import "drag-drop-touch";
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AddComposition } from "./Composition";
+import { SWATCH_WIDTH, BLACK } from "./utils";
 
 const GlobalStyle = createGlobalStyle`
   html {
@@ -21,57 +22,40 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-// create color container
-// + should be a form?
-
-// create color item
-// ✅ with color selection
-// + with drag system
-
-// create combinations container
-
-// create combinations item
-// + add state
-// + add populated state
-// + add drag state
-
-// uuid
-// + get color
-// ✅ set color
-
-// MOVE to utils!
-const SWATCH_BLACK = "#000000";
-// MOVE to utils!
-const SWATCH_WIDTH = 80;
 const createSwatchKey = () => nanoid();
-
 const createIndexComparison = idOne => ([idTwo]) => idOne === idTwo;
 const findSwatchIndexFromId = (swatches, id) => swatches.findIndex(createIndexComparison(id));
 const createReorderTransform = (x = 0, y = 0) => `transform: translate(${x}%, ${y}%);`;
 
-// Returns a thunk that can calculate the CSS transformation that reorders swatches
-// that the user drags over based not he origin of the dragged swatch.
+/**
+ * Returns a thunk that can calculate the CSS transformation that reorders swatches
+ * that the user drags over based not he origin of the dragged swatch.
+ */
 const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchIndex) => {
-  // Only calculate if we have the relevant information.
+  /** Only calculate if we have the relevant information. */
   const isInDragOverState = dragStartId && dragOverId && dragStartId !== dragOverId;
   if (!isInDragOverState) return createReorderTransform;
 
-  // Only calculate if the current swatch is not the originating dragging swatch.
+  /** Only calculate if the current swatch is not the originating dragging swatch. */
   const dragStartIndex = findSwatchIndexFromId(swatches, dragStartId);
   const dragOverIndex = findSwatchIndexFromId(swatches, dragOverId);
   const shouldReorder = dragStartIndex !== swatchIndex;
   if (!shouldReorder) return createReorderTransform;
 
-  // Only calculate is the current swatch falls between the originating dragged
-  // swatch and the dragged over swatch. All outside swatches remain static.
+  /**
+   * Only calculate is the current swatch falls between the originating dragged
+   * swatch and the dragged over swatch. All outside swatches remain static.
+   */
   const isBeforeDragSwatches = swatchIndex >= dragStartIndex || swatchIndex >= dragOverIndex;
   const isAfterDragSwatches = swatchIndex <= dragStartIndex || swatchIndex <= dragOverIndex;
   const isBetweenDragSwatches = isBeforeDragSwatches && isAfterDragSwatches;
   if (!isBetweenDragSwatches) return createReorderTransform;
 
-  // Based on the direction ("left" or "right") that the user is dragging we
-  // reorder the swatches that fall between the dragging indexes to fill the gap
-  // left from the originating dragged swatch.
+  /**
+   * Based on the direction ("left" or "right") that the user is dragging we
+   * reorder the swatches that fall between the dragging indexes to fill the gap
+   * left from the originating dragged swatch.
+   */
   return function positionReorderTransform(prevNode) {
     const isDraggedRight = dragStartIndex > swatchIndex;
     const siblingTarget = isDraggedRight ? "nextElementSibling" : "previousElementSibling";
@@ -86,9 +70,9 @@ const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchInde
 };
 
 const App = () => {
-  /**
-   * SWATCHES:
-   */
+  /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** SWATCHES:   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
   const [swatches, setSwatches] = useState(
     new Map([
       ["1", "#0707ff"],
@@ -106,7 +90,7 @@ const App = () => {
 
   const addNewSwatch = () => {
     const [, lastHex] = [...swatches].pop() || [];
-    setSwatches(new Map([...swatches, [createSwatchKey(), lastHex || SWATCH_BLACK]]));
+    setSwatches(new Map([...swatches, [createSwatchKey(), lastHex || BLACK]]));
   };
 
   const updateUserSwatch = (id, hex) => setSwatches(new Map([...swatches, [id, hex]]));
@@ -151,9 +135,12 @@ const App = () => {
     removeDragIds();
   };
 
-  /**
-   * COMPOSITIONS:
-   */
+  const createReorderTransformHandler = (...args) =>
+    calculateReorderTransform([...swatches], ...args);
+
+  /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** COMPOSITIONS:  ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
   const [compositions, setCompositions] = useState(
     new Map([
       ["1", { baseId: "1", contentId: "2" }],
@@ -179,8 +166,7 @@ const App = () => {
                 handleDragEnd={removeDragIds}
                 handleDrop={moveSwatchToNewLocation}
                 isUserDragging={!!dragStartId}
-                createReorderTransform={calculateReorderTransform(
-                  [...swatches],
+                createReorderTransform={createReorderTransformHandler(
                   dragStartId,
                   dragOverId,
                   swatchIndex
@@ -193,11 +179,7 @@ const App = () => {
       </TransitionGroup>
       <Compositions>
         {[...compositions].map(comp => {
-          console.log(comp);
           const [compId, { baseId, contentId }] = comp;
-          console.log(comp[1].baseId, comp[1].contentId);
-
-          console.log({ compId, baseId, contentId });
 
           return (
             <UserComposition

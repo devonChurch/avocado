@@ -1,55 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { memo, useState, useEffect, useRef, useCallback } from "react";
 import styled, { css } from "styled-components";
 import throttle from "lodash.throttle";
 import tinyColor from "tinycolor2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
-
-// MOVE to utils!
-const SWATCH_WIDTH = 80;
-const BORDER_WIDTH = 3;
-const FOCUS_WIDTH = 3;
-
-const BORDER_RADUIS = 4;
-
-const WHITE = "#fff";
-
-const GRAY_100 = "#EAF0EE";
-const GRAY_300 = "#c8d5d1";
-const GRAY_500 = "#8DA79F";
-const GRAY_700 = "#5c716b";
-const GRAY_900 = "#40504C";
-
-const SPEED_500 = "250ms";
-const SPEED_700 = "500ms";
-
-const SCALE_300 = 0.8;
-const SCALE_400 = 0.9;
-const SCALE_500 = 1;
-
-const createSwatch = hex => tinyColor(hex);
-
-const { 0: FOCUS_SHADOW_0, 500: FOCUS_SHADOW_500 } = (() => {
-  const swatch = createSwatch("#000");
-
-  return {
-    0: `0 0 0 ${FOCUS_WIDTH}px ${swatch.setAlpha(0.15)}`,
-    500: `0 0 13px ${FOCUS_WIDTH}px ${swatch.setAlpha(0.25)}`
-  };
-})();
-
-const createFocusColor = hex => {
-  const swatch = createSwatch(hex);
-  const isLight = swatch.isLight();
-  const modifier = isLight ? "darken" : "lighten";
-  const strength = isLight ? 10 : 30;
-
-  return swatch[modifier](strength).toString();
-};
-
-const createFocusborder = hex => `0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
-const createFocusState = hex => createFocusborder(hex);
-const createFocusStateWithShadow = hex => `${FOCUS_SHADOW_500}, ${createFocusborder(hex)}`;
+import {
+  SWATCH_WIDTH,
+  BORDER_WIDTH,
+  BORDER_RADUIS,
+  WHITE,
+  GRAY_300,
+  GRAY_500,
+  GRAY_900,
+  SPEED_500,
+  SPEED_700,
+  SCALE_300,
+  SCALE_400,
+  SCALE_500,
+  createFocusState,
+  createFocusStateWithShadow
+} from "./utils";
 
 const positionAbsolute = css`
   position: absolute;
@@ -224,10 +194,6 @@ const ReorderTransformation = styled.div`
   }}
 `;
 
-const AppendItem = styled.li`
-  /* padding: 10px; */
-`;
-
 const AddButton = styled.button`
   appearance: none;
   border: ${BORDER_WIDTH}px solid ${GRAY_900};
@@ -268,91 +234,93 @@ export const SwatchIcon = styled(FontAwesomeIcon)``;
 
 export const Swatches = List;
 
-export const UserSwatch = ({
-  id,
-  hex,
-  handleChange,
-  handleDragStart,
-  handleDragOver,
-  handleDragExit,
-  handleDragEnd,
-  handleDrop,
-  isUserDragging,
-  createReorderTransform
-}) => {
-  const [isDragged, setIsDragged] = useState(false);
-  const [isAboutToDrag, setIsAboutToDrag] = useState(false);
-  const swatchRef = useRef(null);
+export const UserSwatch = memo(
+  ({
+    id,
+    hex,
+    handleChange,
+    handleDragStart,
+    handleDragOver,
+    handleDragExit,
+    handleDragEnd,
+    handleDrop,
+    isUserDragging,
+    createReorderTransform
+  }) => {
+    const [isDragged, setIsDragged] = useState(false);
+    const [isAboutToDrag, setIsAboutToDrag] = useState(false);
+    const swatchRef = useRef(null);
 
-  return (
-    <DragHitBox
-      {...{ isDragged, isUserDragging, hex }}
-      key={`${id}_DragHitBox`}
-      draggable
-      ref={swatchRef}
-      onDragStart={event => {
-        setIsAboutToDrag(false);
-        /*
-         * Even though we are setting the drag n drop state through React Firefox
-         * will not initialise a DnD scenario without setting the `dataTransfer`.
-         */
-        event.dataTransfer.setData("text/plain", "banana");
+    return (
+      <DragHitBox
+        {...{ isDragged, isUserDragging, hex }}
+        key={`${id}_DragHitBox`}
+        draggable
+        ref={swatchRef}
+        onDragStart={event => {
+          setIsAboutToDrag(false);
+          /*
+           * Even though we are setting the drag n drop state through React Firefox
+           * will not initialise a DnD scenario without setting the `dataTransfer`.
+           */
+          event.dataTransfer.setData("text/plain", "banana");
 
-        /**
-         * Set the drag image that will "stick" to the users mouse position during
-         * the entire drag sequence.
-         */
-        const offset = SWATCH_WIDTH / 2;
-        event.dataTransfer.setDragImage(swatchRef.current, offset, offset);
+          /**
+           * Set the drag image that will "stick" to the users mouse position during
+           * the entire drag sequence.
+           */
+          const offset = SWATCH_WIDTH / 2;
+          event.dataTransfer.setDragImage(swatchRef.current, offset, offset);
 
-        setIsDragged(true);
-        handleDragStart(id);
-      }}
-      onDragEnd={() => {
-        setIsDragged(false);
-        handleDragEnd();
-      }}
-      onDragOver={event => {
-        handleDragOver(id);
-        /*
-         * MDN suggests applying `preventDefault` on specific DnD event hooks.
-         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
-         */
-        event.preventDefault();
-      }}
-      onDragLeave={handleDragExit}
-      onDrop={event => {
-        handleDrop(id);
-        /*
-         * MDN suggests applying `preventDefault` on specific DnD event hooks.
-         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
-         */
-        event.preventDefault();
-      }}
-      onMouseDown={() => setIsAboutToDrag(true)}
-      onMouseUp={() => setIsAboutToDrag(false)}
-    >
-      <ReorderTransformation
-        {...{ isDragged, isUserDragging }}
-        key={`${id}_ReorderTransformation`}
-        reorderTransform={createReorderTransform(swatchRef.current)}
+          setIsDragged(true);
+          handleDragStart(id);
+        }}
+        onDragEnd={() => {
+          setIsDragged(false);
+          handleDragEnd();
+        }}
+        onDragOver={event => {
+          handleDragOver(id);
+          /*
+           * MDN suggests applying `preventDefault` on specific DnD event hooks.
+           * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+           */
+          event.preventDefault();
+        }}
+        onDragLeave={handleDragExit}
+        onDrop={event => {
+          handleDrop(id);
+          /*
+           * MDN suggests applying `preventDefault` on specific DnD event hooks.
+           * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
+           */
+          event.preventDefault();
+        }}
+        onMouseDown={() => setIsAboutToDrag(true)}
+        onMouseUp={() => setIsAboutToDrag(false)}
       >
-        <UserItem key={`${id}_UserItem`} {...{ hex, isDragged, isUserDragging, isAboutToDrag }} />
-        <Input
-          key={`${id}_Input`}
-          type="color"
-          value={hex}
-          onChange={event => handleChange(id, event.target.value)}
-        />
-      </ReorderTransformation>
-    </DragHitBox>
-  );
-};
+        <ReorderTransformation
+          {...{ isDragged, isUserDragging }}
+          key={`${id}_ReorderTransformation`}
+          reorderTransform={createReorderTransform(swatchRef.current)}
+        >
+          <UserItem key={`${id}_UserItem`} {...{ hex, isDragged, isUserDragging, isAboutToDrag }} />
+          <Input
+            key={`${id}_Input`}
+            type="color"
+            value={hex}
+            onChange={event => handleChange(id, event.target.value)}
+          />
+        </ReorderTransformation>
+      </DragHitBox>
+    );
+  }
+);
 
-export const AppendSwatch = ({ handleClick, handleDrop }) => {
+export const AppendSwatch = memo(({ handleClick, handleDrop }) => {
   const [isTargeted, setIsTargeted] = useState(false);
   return (
-    <AppendItem>
+    <li>
       <AddButton
         {...{ isTargeted }}
         onClick={handleClick}
@@ -379,6 +347,6 @@ export const AppendSwatch = ({ handleClick, handleDrop }) => {
       >
         <SwatchIcon icon={faPlus} size="2x" />
       </AddButton>
-    </AppendItem>
+    </li>
   );
-};
+});
