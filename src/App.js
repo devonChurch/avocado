@@ -93,19 +93,22 @@ const App = () => {
     setSwatches(new Map([...swatches, [createSwatchKey(), lastHex || BLACK]]));
   };
 
-  const updateUserSwatch = (id, hex) => setSwatches(new Map([...swatches, [id, hex]]));
+  const updateUserSwatch = useCallback(
+    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
+    [swatches]
+  );
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
 
   const removeDragStartId = () => setDragStartId(null);
-  const removeDragOverId = () => setDragOverId(null);
-  const removeDragIds = () => {
+  const removeDragOverId = useCallback(() => setDragOverId(null), []);
+  const removeDragIds = useCallback(() => {
     removeDragStartId(null);
     removeDragOverId(null);
-  };
+  }, []);
 
-  const moveSwatchToNewLocation = dropId => {
+  const moveSwatchToNewLocation = useCallback(dropId => {
     if (dragStartId === dropId) return;
 
     const prevSwatches = [...swatches];
@@ -127,7 +130,7 @@ const App = () => {
     );
     setSwatches(nextSwatches);
     removeDragIds();
-  };
+  }, []);
 
   const duplicateAndAppendNewSwatch = () => {
     const dropHex = swatches.get(dragStartId);
