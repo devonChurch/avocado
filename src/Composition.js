@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import styled from "styled-components";
 import tinyColor from "tinycolor2";
 import throttle from "lodash.throttle";
@@ -73,7 +73,7 @@ const findAccessibilityLevel = (baseHex, contentHex) => {
   }
 };
 
-export const UserComposition = ({ idComp, baseHex, contentHex }) => {
+export const UserComposition = memo(({ idComp, baseHex, contentHex }) => {
   return (
     <UserItem {...{ baseHex, contentHex }}>
       <SmallText>Small Standard Text</SmallText>
@@ -81,9 +81,9 @@ export const UserComposition = ({ idComp, baseHex, contentHex }) => {
       {findAccessibilityLevel(baseHex, contentHex)}
     </UserItem>
   );
-};
+});
 
-export const AddComposition = ({ handleAdd }) => {
+export const AddComposition = memo(({ handleAdd }) => {
   return (
     <AddItem>
       <AddButton onClick={handleAdd}>
@@ -91,4 +91,4 @@ export const AddComposition = ({ handleAdd }) => {
       </AddButton>
     </AddItem>
   );
-};
+});
