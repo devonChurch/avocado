@@ -1,6 +1,7 @@
 import React, { memo, useState, useEffect, useRef, useCallback } from "react";
 import styled, { css } from "styled-components";
 import throttle from "lodash.throttle";
+import debounce from "lodash.debounce";
 import tinyColor from "tinycolor2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
@@ -248,6 +249,21 @@ export const UserSwatch = memo(
   }) => {
     const [isDragged, setIsDragged] = useState(false);
     const [isAboutToDrag, setIsAboutToDrag] = useState(false);
+
+    /**
+     * We are debouncing the color input change to our `swatch` global state.
+     * Debouncing causes the swatch hex to hang on the current value until the
+     * callback finally updates. This "hanging" makes the native color `<input />`
+     * constantly revert back to the swatch hex rather than the users current
+     * selection.
+     *
+     * In that regard, we need to keep a local reference to what the user has
+     * selected as their "next" hex choice so that the UI responds with a snappy
+     * experience.
+     */
+    const [inputValue, setInputValue] = useState(hex);
+    const debouncedInputHandler = debounce(value => handleChange(id, value), 100);
+
     const swatchRef = useRef(null);
 
     return (
@@ -307,8 +323,12 @@ export const UserSwatch = memo(
           <Input
             key={`${id}_Input`}
             type="color"
-            value={hex}
-            onChange={event => handleChange(id, event.target.value)}
+            value={inputValue}
+            onChange={event => {
+              const { value } = event.target;
+              setInputValue(value);
+              debouncedInputHandler(value);
+            }}
           />
         </ReorderTransformation>
       </DragHitBox>

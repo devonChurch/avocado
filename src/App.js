@@ -2,6 +2,7 @@ import "normalize.css";
 import "drag-drop-touch";
 import React, { useCallback, useMemo, useState } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
+import debounce from "lodash.debounce";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
@@ -99,7 +100,8 @@ const App = () => {
   };
 
   const updateUserSwatch = useCallback(
-    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
+    // (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
+    debounce((id, hex) => setSwatches(new Map([...swatches, [id, hex]])), 100),
     [swatches]
   );
 
