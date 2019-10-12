@@ -6,7 +6,7 @@ import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AddComposition } from "./Composition";
-import { SWATCH_WIDTH, BLACK } from "./utils";
+import { SWATCH_WIDTH, BLACK, SPACE_500 } from "./utils";
 
 const GlobalStyle = createGlobalStyle`
   html {
@@ -19,6 +19,11 @@ const GlobalStyle = createGlobalStyle`
 
   body {
     padding: 50px;
+  }
+
+  #root {
+    display: grid;
+    grid-gap: ${SPACE_500}px;
   }
 `;
 
@@ -108,29 +113,34 @@ const App = () => {
     removeDragOverId(null);
   }, []);
 
-  const moveSwatchToNewLocation = useCallback(dropId => {
-    if (dragStartId === dropId) return;
+  const moveSwatchToNewLocation = useCallback(
+    dropId => {
+      if (dragStartId === dropId) return;
 
-    const prevSwatches = [...swatches];
-    const dropIndex = findSwatchIndexFromId(prevSwatches, dropId);
-    const dragStartIndex = findSwatchIndexFromId(prevSwatches, dragStartId);
-    const shoudPrepend = dropIndex < dragStartIndex;
-    const dropSwatch = [dragStartId, swatches.get(dragStartId)];
-    const nextSwatches = new Map(
-      prevSwatches.reduce((acc, [id, hex]) => {
-        switch (true) {
-          case id === dragStartId:
-            return acc; // Remove the swatch from its orignal location.
-          case id === dropId:
-            return shoudPrepend ? [...acc, dropSwatch, [id, hex]] : [...acc, [id, hex], dropSwatch];
-          default:
-            return [...acc, [id, hex]];
-        }
-      }, [])
-    );
-    setSwatches(nextSwatches);
-    removeDragIds();
-  }, []);
+      const prevSwatches = [...swatches];
+      const dropIndex = findSwatchIndexFromId(prevSwatches, dropId);
+      const dragStartIndex = findSwatchIndexFromId(prevSwatches, dragStartId);
+      const shoudPrepend = dropIndex < dragStartIndex;
+      const dropSwatch = [dragStartId, swatches.get(dragStartId)];
+      const nextSwatches = new Map(
+        prevSwatches.reduce((acc, [id, hex]) => {
+          switch (true) {
+            case id === dragStartId:
+              return acc; // Remove the swatch from its orignal location.
+            case id === dropId:
+              return shoudPrepend
+                ? [...acc, dropSwatch, [id, hex]]
+                : [...acc, [id, hex], dropSwatch];
+            default:
+              return [...acc, [id, hex]];
+          }
+        }, [])
+      );
+      setSwatches(nextSwatches);
+      removeDragIds();
+    },
+    [swatches, dragStartId]
+  );
 
   const duplicateAndAppendNewSwatch = () => {
     const dropHex = swatches.get(dragStartId);

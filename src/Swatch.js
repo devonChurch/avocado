@@ -12,13 +12,14 @@ import {
   GRAY_300,
   GRAY_500,
   GRAY_900,
+  SCALE_500,
   SPEED_500,
   SPEED_700,
   SCALE_300,
   SCALE_400,
-  SCALE_500,
   createFocusState,
-  createFocusStateWithShadow
+  createFocusStateWithShadow,
+  resetList
 } from "./utils";
 
 const positionAbsolute = css`
@@ -29,11 +30,9 @@ const positionAbsolute = css`
   height: 100%;
 `;
 
-const List = styled.ul`
+const SwatchList = styled.ul`
+  ${resetList}
   display: grid;
-  list-style: none;
-  margin: 0;
-  padding: 0;
   grid-gap: 0;
   grid-template-rows: repeat(auto-fill, ${SWATCH_WIDTH}px);
   grid-template-columns: repeat(auto-fill, ${SWATCH_WIDTH}px);
@@ -205,6 +204,7 @@ const AddButton = styled.button`
   transition-duration: ${SPEED_500};
   transition-property: box-shadow, background, transform;
   width: 100%;
+  outline: 0;
 
   ${({ isTargeted }) =>
     isTargeted
@@ -220,7 +220,6 @@ const AddButton = styled.button`
   &:focus,
   &:hover {
     box-shadow: ${createFocusStateWithShadow(GRAY_300)};
-    outline: 0;
   }
 `;
 
@@ -232,7 +231,7 @@ const Input = styled.input`
 
 export const SwatchIcon = styled(FontAwesomeIcon)``;
 
-export const Swatches = List;
+export const Swatches = SwatchList;
 
 export const UserSwatch = memo(
   ({
