@@ -6,7 +6,7 @@ import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
-import { SWATCH_WIDTH, BLACK, SPACE_600 } from "./utils";
+import { SWATCH_WIDTH, BLACK, SPACE_600, SPEED_500 } from "./utils";
 
 const GlobalStyle = createGlobalStyle`
   html {
@@ -175,7 +175,7 @@ const App = () => {
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([id, hex], swatchIndex) => {
           return (
-            <CSSTransition key={id} timeout={250} classNames="swatch">
+            <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
               <UserSwatch
                 key={id}
                 {...{ id, hex }}
@@ -197,21 +197,23 @@ const App = () => {
         })}
         <AppendSwatch handleClick={addNewSwatch} handleDrop={duplicateAndAppendNewSwatch} />
       </TransitionGroup>
-      <Compositions>
+      <TransitionGroup component={Compositions}>
         {[...compositions].map(comp => {
           const [compId, { baseId, contentId }] = comp;
 
           return (
-            <UserComposition
-              key={compId}
-              {...{ compId }}
-              baseHex={swatches.get(baseId)}
-              contentHex={swatches.get(contentId)}
-            />
+            <CSSTransition key={compId} timeout={5000} classNames="composition">
+              <UserComposition
+                key={compId}
+                {...{ compId }}
+                baseHex={swatches.get(baseId)}
+                contentHex={swatches.get(contentId)}
+              />
+            </CSSTransition>
           );
         })}
         <AppendComposition handleClick={addNewComposition} />
-      </Compositions>
+      </TransitionGroup>
     </>
   );
 };

@@ -14,7 +14,7 @@ export const SWATCH_WIDTH = 80;
 export const BORDER_WIDTH = 3;
 export const FOCUS_WIDTH = 3;
 export const COMP_WIDTH = SPACE_500 * 16;
-export const COMP_HEIGHT = SPACE_500 * 16;
+export const COMP_HEIGHT = SPACE_500 * 20;
 
 export const BORDER_RADIUS = 4;
 
@@ -27,9 +27,10 @@ export const GRAY_500 = "#8DA79F";
 export const GRAY_700 = "#5c716b";
 export const GRAY_900 = "#40504C";
 
-export const SPEED_500 = "250ms";
-export const SPEED_700 = "500ms";
+export const SPEED_500 = 250;
+export const SPEED_700 = 500;
 
+export const SCALE_200 = 0.5;
 export const SCALE_300 = 0.8;
 export const SCALE_400 = 0.9;
 export const SCALE_500 = 1;

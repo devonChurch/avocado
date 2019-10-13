@@ -18,6 +18,8 @@ import {
   COMP_HEIGHT,
   BORDER_RADIUS,
   BORDER_WIDTH,
+  SCALE_200,
+  SCALE_500,
   SCALE_600,
   SPACE_600,
   SPACE_800,
@@ -81,7 +83,27 @@ const Character = styled.span`
   opacity: ${({ children }) => (children === "A" ? 1 : 0.25)};
 `;
 
-const UserItem = styled.li`
+const ItemWrapper = styled.li`
+  position: relative;
+  transition-duration: ${SPEED_500}ms;
+  transition-property: opacity, transform;
+
+  /** React CSSTransition animation property when an item is in its DORMANT state. */
+  &.composition-enter,
+  &.composition-exit {
+    opacity: 0;
+    transform: scale(${SCALE_200});
+  }
+
+  /** React CSSTransition animation property when an item is in its ACTIVE state. */
+  &.composition-enter-active,
+  &.composition-exit-active {
+    opacity: 1;
+    transform: scale(${SCALE_500});
+  }
+`;
+
+const UserItem = styled.div`
   height: 100%;
   width: 100%;
   position: relative;
@@ -98,7 +120,7 @@ const Examples = styled.div`
   padding: ${SPACE_600}px;
   position: relative;
   font-family: sans-serif;
-  transition: background ${SPEED_700};
+  transition: background ${SPEED_700}ms;
 
   > * {
     display: block;
@@ -230,15 +252,17 @@ const Results = ({ baseHex, contentHex }) => {
 
 export const UserComposition = memo(({ idComp, baseHex, contentHex }) => {
   return (
-    <UserItem>
-      <Examples {...{ baseHex, contentHex }}>
-        <SmallText>The quick brown fox,</SmallText>
-        <SmallText isBold>jumps over the lazy dog.</SmallText>
-        <Icons />
-        <Dividers />
-      </Examples>
-      <Results {...{ baseHex, contentHex }} />
-    </UserItem>
+    <ItemWrapper>
+      <UserItem>
+        <Examples {...{ baseHex, contentHex }}>
+          <SmallText>The quick brown fox,</SmallText>
+          <SmallText isBold>jumps over the lazy dog.</SmallText>
+          <Icons />
+          <Dividers />
+        </Examples>
+        <Results {...{ baseHex, contentHex }} />
+      </UserItem>
+    </ItemWrapper>
   );
 });
 

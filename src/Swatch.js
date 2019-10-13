@@ -48,7 +48,7 @@ const UserItem = styled.div`
   ${positionAbsolute}
   background: ${({ hex }) => hex};
   pointer-events: none;
-  transition-duration: ${SPEED_700}, ${SPEED_500}, ${SPEED_700}, ${SPEED_700};
+  transition-duration: ${SPEED_700}ms, ${SPEED_500}ms, ${SPEED_700}ms, ${SPEED_700}ms;
   transition-property: background, box-shadow, transform, border;
 
   ${({ hex, isUserDragging, isDragged, isAboutToDrag }) => {
@@ -69,7 +69,7 @@ const UserItem = styled.div`
           box-shadow: ${LUMINANCE_SHADOW_500};
           content: "";
           display: block;
-          transition: opacity ${SPEED_500};
+          transition: opacity ${SPEED_500}ms;
         }
       `;
     }
@@ -135,7 +135,7 @@ const UserItem = styled.div`
 
 const DragHitBox = styled.li`
   position: relative;
-  transition-duration: ${SPEED_500};
+  transition-duration: ${SPEED_500}ms;
   transition-property: opacity, transform;
   /**
    * When an item is being dragged we send it to the BACK so that ALL other
@@ -186,7 +186,7 @@ const DragHitBox = styled.li`
 
 const ReorderTransformation = styled.div`
   ${positionAbsolute}
-  transition: ${SPEED_500};
+  transition: ${SPEED_500}ms;
 
   ${({ reorderTransform }) =>
     css`
@@ -218,6 +218,8 @@ const ReorderTransformation = styled.div`
 `;
 
 const AddItem = styled.li`
+  /** Force contents to take up ALL of the "cells" x/y space. */
+  display: grid;
   padding: ${SPACE_400}px;
 `;
 
@@ -229,7 +231,7 @@ export const AddButton = styled.button`
   cursor: pointer;
   display: block;
   height: 100%;
-  transition-duration: ${SPEED_500};
+  transition-duration: ${SPEED_500}ms;
   transition-property: box-shadow, background, transform, width, height;
   width: 100%;
   outline: 0;
