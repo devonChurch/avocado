@@ -1,35 +1,34 @@
 import React, { memo, useState, useEffect, useRef, useCallback } from "react";
 import styled, { css } from "styled-components";
-import throttle from "lodash.throttle";
 import debounce from "lodash.debounce";
-import tinyColor from "tinycolor2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
 import {
   SWATCH_WIDTH,
   BORDER_WIDTH,
-  BORDER_RADUIS,
+  BORDER_RADIUS,
   WHITE,
+  BLACK,
   GRAY_300,
   GRAY_500,
   GRAY_900,
-  SCALE_500,
   SPEED_500,
   SPEED_700,
   SCALE_300,
   SCALE_400,
+  SCALE_500,
+  SCALE_600,
+  SPACE_300,
+  SPACE_400,
+  SPACE_600,
+  LUMINANCE_SHADOW_500,
+  createSwatch,
   createFocusState,
   createFocusStateWithShadow,
-  resetList
+  checkHasLowLuminance,
+  resetList,
+  positionAbsolute
 } from "./utils";
-
-const positionAbsolute = css`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`;
 
 const SwatchList = styled.ul`
   ${resetList}
@@ -55,9 +54,29 @@ const UserItem = styled.div`
   ${({ hex, isUserDragging, isDragged, isAboutToDrag }) => {
     let styles = "";
 
+    /**
+     * If a swatch color the user has selected has VERY LOW luminance (white or
+     * close to white) then the swatch will blend into the application background
+     * (and effectively dissapear).
+     *
+     * In that regard, we add a slightly darker border around the color to
+     * differentiate it from the background (if it needs it).
+     */
+    if (checkHasLowLuminance(hex)) {
+      styles += `
+        &:after {
+          ${positionAbsolute}
+          box-shadow: ${LUMINANCE_SHADOW_500};
+          content: "";
+          display: block;
+          transition: opacity ${SPEED_500};
+        }
+      `;
+    }
+
     if (isDragged || isUserDragging || isAboutToDrag) {
       styles += `
-        border-radius: ${BORDER_RADUIS}px;
+        border-radius: ${BORDER_RADIUS}px;
       `;
     }
 
@@ -140,8 +159,12 @@ const DragHitBox = styled.li`
 
         ${UserItem} {
           box-shadow: ${({ hex }) => createFocusStateWithShadow(hex)};
-          border-radius: ${BORDER_RADUIS}px;
+          border-radius: ${BORDER_RADIUS}px;
           outline: 0;
+
+          &:after {
+            opacity: 0;
+          }
         }
       }
     `}
@@ -194,16 +217,20 @@ const ReorderTransformation = styled.div`
   }}
 `;
 
-const AddButton = styled.button`
+const AddItem = styled.li`
+  padding: ${SPACE_400}px;
+`;
+
+export const AddButton = styled.button`
   appearance: none;
   border: ${BORDER_WIDTH}px solid ${GRAY_900};
-  border-radius: ${BORDER_RADUIS}px;
+  border-radius: ${BORDER_RADIUS}px;
   color: ${GRAY_900};
   cursor: pointer;
   display: block;
   height: 100%;
   transition-duration: ${SPEED_500};
-  transition-property: box-shadow, background, transform;
+  transition-property: box-shadow, background, transform, width, height;
   width: 100%;
   outline: 0;
 
@@ -211,11 +238,14 @@ const AddButton = styled.button`
     isTargeted
       ? css`
           background: ${GRAY_500};
-          transform: scale(${SCALE_400});
+          /* transform: scale(${SCALE_600}); */
+          transform: translate(-${SPACE_300}px, -${SPACE_300}px);
+          width: calc(100% + ${SPACE_400}px);
+          height: calc(100% + ${SPACE_400}px);
         `
       : css`
           background: ${GRAY_300};
-          transform: scale(${SCALE_300});
+          /* transform: scale(${SCALE_300}); */
         `};
 
   &:focus,
@@ -339,7 +369,7 @@ export const UserSwatch = memo(
 export const AppendSwatch = memo(({ handleClick, handleDrop }) => {
   const [isTargeted, setIsTargeted] = useState(false);
   return (
-    <li>
+    <AddItem>
       <AddButton
         {...{ isTargeted }}
         onClick={handleClick}
@@ -366,6 +396,6 @@ export const AppendSwatch = memo(({ handleClick, handleDrop }) => {
       >
         <SwatchIcon icon={faPlus} size="2x" />
       </AddButton>
-    </li>
+    </AddItem>
   );
 });

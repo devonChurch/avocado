@@ -14,11 +14,12 @@ export const SWATCH_WIDTH = 80;
 export const BORDER_WIDTH = 3;
 export const FOCUS_WIDTH = 3;
 export const COMP_WIDTH = SPACE_500 * 16;
+export const COMP_HEIGHT = SPACE_500 * 16;
 
-export const BORDER_RADUIS = 4;
+export const BORDER_RADIUS = 4;
 
 export const WHITE = "#fff";
-export const BLACK = "#000000";
+export const BLACK = "#000";
 
 export const GRAY_100 = "#EAF0EE";
 export const GRAY_300 = "#c8d5d1";
@@ -34,14 +35,13 @@ export const SCALE_400 = 0.9;
 export const SCALE_500 = 1;
 export const SCALE_600 = 1.1;
 
-export const { 0: FOCUS_SHADOW_0, 500: FOCUS_SHADOW_500 } = (() => {
-  const swatch = createSwatch("#000");
+export const FOCUS_SHADOW_500 = `0 0 13px ${FOCUS_WIDTH}px ${createSwatch(BLACK).setAlpha(0.25)}`;
 
-  return {
-    0: `0 0 0 ${FOCUS_WIDTH}px ${swatch.setAlpha(0.15)}`,
-    500: `0 0 13px ${FOCUS_WIDTH}px ${swatch.setAlpha(0.25)}`
-  };
-})();
+export const LUMINANCE_SHADOW_500 = `inset 0 0 0 ${BORDER_WIDTH}px ${createSwatch(BLACK).setAlpha(
+  0.1
+)}`;
+
+export const checkHasLowLuminance = hex => createSwatch(hex).getLuminance() > 0.9;
 
 const createFocusColor = hex => {
   const swatch = createSwatch(hex);
@@ -60,4 +60,12 @@ export const resetList = css`
   list-style: none;
   margin: 0;
   padding: 0;
+`;
+
+export const positionAbsolute = css`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 `;

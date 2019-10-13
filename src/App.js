@@ -2,12 +2,11 @@ import "normalize.css";
 import "drag-drop-touch";
 import React, { useCallback, useMemo, useState } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
-import debounce from "lodash.debounce";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
-import { Compositions, UserComposition, AddComposition } from "./Composition";
-import { SWATCH_WIDTH, BLACK, SPACE_500 } from "./utils";
+import { Compositions, UserComposition, AppendComposition } from "./Composition";
+import { SWATCH_WIDTH, BLACK, SPACE_600 } from "./utils";
 
 const GlobalStyle = createGlobalStyle`
   html {
@@ -24,11 +23,12 @@ const GlobalStyle = createGlobalStyle`
 
   #root {
     display: grid;
-    grid-gap: ${SPACE_500}px;
+    grid-gap: ${SPACE_600}px;
   }
 `;
 
 const createSwatchKey = () => nanoid();
+const createCompositionKey = createSwatchKey;
 const createIndexComparison = idOne => ([idTwo]) => idOne === idTwo;
 const findSwatchIndexFromId = (swatches, id) => swatches.findIndex(createIndexComparison(id));
 const createReorderTransform = (x = 0, y = 0) => `transform: translate(${x}%, ${y}%);`;
@@ -100,8 +100,7 @@ const App = () => {
   };
 
   const updateUserSwatch = useCallback(
-    // (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
-    debounce((id, hex) => setSwatches(new Map([...swatches, [id, hex]])), 100),
+    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
     [swatches]
   );
 
@@ -164,6 +163,12 @@ const App = () => {
       ["4", { baseId: "7", contentId: "8" }]
     ])
   );
+
+  const addNewComposition = () => {
+    const [, hexes] = [...compositions].pop() || [];
+    setCompositions(new Map([...compositions, [createCompositionKey(), hexes]]));
+  };
+
   return (
     <>
       <GlobalStyle />
@@ -205,7 +210,7 @@ const App = () => {
             />
           );
         })}
-        <AddComposition handleAdd={addNewSwatch} />
+        <AppendComposition handleClick={addNewComposition} />
       </Compositions>
     </>
   );

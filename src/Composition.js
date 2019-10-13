@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useRef } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import tinyColor from "tinycolor2";
-import throttle from "lodash.throttle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -12,26 +11,36 @@ import {
   faTrashAlt
 } from "@fortawesome/free-regular-svg-icons";
 import {
+  BLACK,
   GRAY_300,
   GRAY_900,
   COMP_WIDTH,
-  BORDER_RADUIS,
+  COMP_HEIGHT,
+  BORDER_RADIUS,
+  BORDER_WIDTH,
   SCALE_600,
   SPACE_600,
   SPACE_800,
-  resetList
+  SPEED_500,
+  SPEED_700,
+  LUMINANCE_SHADOW_500,
+  createSwatch,
+  checkHasLowLuminance,
+  resetList,
+  positionAbsolute
 } from "./utils";
+import { AppendSwatch } from "./Swatch";
 
 const CompList = styled.ul`
   ${resetList}
   display: grid;
   grid-gap: ${SPACE_600}px;
-  grid-template-columns: repeat(auto-fill, ${COMP_WIDTH}px);
-  /* grid-template-rows: repeat(auto-fill, 300px); */
+  grid-template-columns: repeat(auto-fit, minmax(${COMP_WIDTH}px, auto));
+  /* grid-template-rows: repeat(auto-fill, minmax(${COMP_HEIGHT}px, auto)); */
 
   > * {
-    /* height: 100px; */
-    width: ${COMP_WIDTH}px;
+    min-height: ${COMP_HEIGHT}px;
+    min-width: ${COMP_WIDTH}px;
   }
 `;
 
@@ -52,12 +61,11 @@ const DividerList = styled.ul`
 
 const ResultList = styled.ul`
   ${resetList}
-  display: grid;
-  border-radius: 0 0 ${BORDER_RADUIS}px ${BORDER_RADUIS}px;
-  grid-gap: ${SPACE_600}px;
-  grid-template-columns: ${SPACE_800}px repeat(2, auto);
+  display: flex;
+  border-radius: 0 0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px;
   background: ${GRAY_300};
   color: ${GRAY_900};
+  justify-content: space-between;
   padding: ${SPACE_600}px;
   font-family: monospace;
   font-size: 24px;
@@ -80,7 +88,7 @@ const UserItem = styled.li`
 `;
 
 const Examples = styled.div`
-  border-radius: ${BORDER_RADUIS}px ${BORDER_RADUIS}px 0 0;
+  border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
@@ -88,11 +96,31 @@ const Examples = styled.div`
   background: ${({ baseHex }) => baseHex};
   color: ${({ contentHex }) => contentHex};
   padding: ${SPACE_600}px;
+  position: relative;
   font-family: sans-serif;
+  transition: background ${SPEED_700};
 
   > * {
     display: block;
   }
+
+  ${({ baseHex }) => {
+    /**
+     * Correspond with the <Swatch /> luminance aesthetic to differentiate VERY
+     * "light" colors from the application background.
+     */
+    if (checkHasLowLuminance(baseHex)) {
+      return css`
+        &:after {
+          ${positionAbsolute}
+          border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
+          box-shadow: ${LUMINANCE_SHADOW_500};
+          content: "";
+          display: block;
+        }
+      `;
+    }
+  }}
 `;
 
 const SmallText = styled.span`
@@ -106,21 +134,19 @@ const SmallText = styled.span`
   font-weight: ${({ isBold }) => (isBold ? "bold" : "initial")};
 `;
 
-const AddItem = styled.li``;
-
-const AddButton = styled.button`
-  appearance: none;
-  border: 2px dashed gray;
-  background: lightgray;
-  display: block;
-  width: 100%;
-  height: 100%;
-`;
+// const AddButton = styled.button`
+//   appearance: none;
+//   border: 2px dashed gray;
+//   background: lightgray;
+//   display: block;
+//   width: 100%;
+//   height: 100%;
+// `;
 
 const AddDropZone = styled.div``;
 
 const Divider = styled.div`
-  border-radius: ${BORDER_RADUIS}px;
+  border-radius: ${BORDER_RADIUS}px;
   height: ${({ height }) => `${height}px`};
   background-image: linear-gradient(to right, currentColor, transparent);
 `;
@@ -216,12 +242,10 @@ export const UserComposition = memo(({ idComp, baseHex, contentHex }) => {
   );
 });
 
-export const AddComposition = memo(({ handleAdd }) => {
+export const AppendComposition = memo(props => {
   return (
-    <AddItem>
-      <AddButton onClick={handleAdd}>
-        <FontAwesomeIcon icon={faPlus} />
-      </AddButton>
-    </AddItem>
+    // <li>
+    <AppendSwatch {...props} />
+    // </li>
   );
 });
