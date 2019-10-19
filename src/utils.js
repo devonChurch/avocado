@@ -14,7 +14,7 @@ export const SWATCH_WIDTH = 80;
 export const BORDER_WIDTH = 3;
 export const FOCUS_WIDTH = 3;
 export const COMP_WIDTH = SPACE_500 * 16;
-export const COMP_HEIGHT = SPACE_500 * 20;
+export const COMP_HEIGHT = SPACE_500 * 18;
 
 export const BORDER_RADIUS = 4;
 
@@ -44,14 +44,30 @@ export const LUMINANCE_SHADOW_500 = `inset 0 0 0 ${BORDER_WIDTH}px ${createSwatc
 
 export const checkHasLowLuminance = hex => createSwatch(hex).getLuminance() > 0.9;
 
-const createFocusColor = hex => {
-  const swatch = createSwatch(hex);
-  const isLight = swatch.isLight();
-  const modifier = isLight ? "darken" : "lighten";
-  const strength = isLight ? 10 : 30;
+const updateLuminanceStatic = (lighten, darken) => (isLuminant, luminance) =>
+  isLuminant ? lighten : darken;
 
-  return swatch[modifier](strength).toString();
+const updateLuminanceDynamic = percentage => (isLuminant, luminance) => {
+  const offset = (luminance * percentage) / 100;
+  return isLuminant ? Math.max(luminance - offset, 0) : Math.min(luminance + offset, 100);
 };
+
+const createColorCompanion = (createUpdate, alpha = 1) => hex => {
+  const prevSwatch = createSwatch(hex).toHsl();
+  const { l: luminanceBefore } = prevSwatch;
+  const isLuminant = luminanceBefore > 0.6;
+  const luminanceAfter = createUpdate(isLuminant, luminanceBefore);
+  const nextSwatch = { ...prevSwatch, l: luminanceAfter };
+
+  return tinyColor(nextSwatch)
+    .setAlpha(alpha)
+    .toString();
+};
+
+export const createOffsetColor = createColorCompanion(updateLuminanceStatic(0.2, 0.8));
+// export const createTargetColor = createColorCompanion(updateLuminanceDynamic(20));
+export const createTargetColor = hex => hex;
+export const createFocusColor = createColorCompanion(updateLuminanceStatic(0.3, 0.7), 0.5);
 
 export const createFocusborder = hex => `0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
 export const createFocusState = hex => createFocusborder(hex);

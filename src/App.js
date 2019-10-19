@@ -106,6 +106,7 @@ const App = () => {
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const isUserDragging = !!dragStartId;
 
   const removeDragStartId = () => setDragStartId(null);
   const removeDragOverId = useCallback(() => setDragOverId(null), []);
@@ -178,14 +179,13 @@ const App = () => {
             <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
               <UserSwatch
                 key={id}
-                {...{ id, hex }}
+                {...{ id, hex, isUserDragging }}
                 handleChange={updateUserSwatch}
                 handleDragStart={setDragStartId}
                 handleDragOver={setDragOverId}
                 handleDragExit={removeDragOverId}
                 handleDragEnd={removeDragIds}
                 handleDrop={moveSwatchToNewLocation}
-                isUserDragging={!!dragStartId}
                 createReorderTransform={createReorderTransformHandler(
                   dragStartId,
                   dragOverId,
@@ -205,9 +205,10 @@ const App = () => {
             <CSSTransition key={compId} timeout={5000} classNames="composition">
               <UserComposition
                 key={compId}
-                {...{ compId }}
+                {...{ compId, isUserDragging }}
                 baseHex={swatches.get(baseId)}
                 contentHex={swatches.get(contentId)}
+                dragHex={isUserDragging && swatches.get(dragStartId)}
               />
             </CSSTransition>
           );

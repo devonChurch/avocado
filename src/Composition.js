@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import tinyColor from "tinycolor2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,8 +19,10 @@ import {
   BORDER_RADIUS,
   BORDER_WIDTH,
   SCALE_200,
+  SCALE_300,
   SCALE_500,
   SCALE_600,
+  SPACE_400,
   SPACE_600,
   SPACE_800,
   SPEED_500,
@@ -31,7 +33,7 @@ import {
   resetList,
   positionAbsolute
 } from "./utils";
-import { AppendSwatch } from "./Swatch";
+import { AppendSwatch, AddItem, AddButton } from "./Swatch";
 
 const CompList = styled.ul`
   ${resetList}
@@ -83,30 +85,21 @@ const Character = styled.span`
   opacity: ${({ children }) => (children === "A" ? 1 : 0.25)};
 `;
 
-const ItemWrapper = styled.li`
-  position: relative;
-  transition-duration: ${SPEED_500}ms;
-  transition-property: opacity, transform;
-
-  /** React CSSTransition animation property when an item is in its DORMANT state. */
-  &.composition-enter,
-  &.composition-exit {
-    opacity: 0;
-    transform: scale(${SCALE_200});
-  }
-
-  /** React CSSTransition animation property when an item is in its ACTIVE state. */
-  &.composition-enter-active,
-  &.composition-exit-active {
-    opacity: 1;
-    transform: scale(${SCALE_500});
-  }
-`;
-
 const UserItem = styled.div`
   height: 100%;
   width: 100%;
   position: relative;
+  transition-property: opacity, transform;
+  transition-duration: ${SPEED_500}ms;
+  transform: scale(SCALE_500);
+
+  ${({ isUserDragging }) =>
+    isUserDragging &&
+    css`
+      opacity: 0.5;
+      pointer-events: none;
+      /* transform: scale(${SCALE_300}); */
+    `}
 `;
 
 const Examples = styled.div`
@@ -230,6 +223,45 @@ const Level = ({ children: level }) => {
   return <span>{characters}</span>;
 };
 
+const ContentUpdate = styled(AddButton)`
+  /* height: calc(50% - 12px); */
+  /* z-index: 1;
+  transform: scale(SCALE_500); */
+`;
+
+const BaseUpdate = styled(ContentUpdate)`
+  /* top: initial;
+  bottom: 0; */
+`;
+
+const DropAreas = styled.div`
+  ${positionAbsolute}
+  display: grid;
+  grid-gap: ${SPACE_600}px;
+  padding: ${SPACE_600}px;
+  transition-duration: ${SPEED_500}ms;
+  transition-property: opacity, transform;
+
+  ${({ isUserDragging }) =>
+    !isUserDragging &&
+    css`
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(${SCALE_600});
+    `}
+`;
+
+// const UpdateComposition = ({ isUserDragging }) => (
+//   <>
+//     <ContentUpdate {...{ isUserDragging }}>
+//       <FontAwesomeIcon icon={faPlus} size="2x" />
+//     </ContentUpdate>
+//     <BaseUpdate {...{ isUserDragging }}>
+//       <FontAwesomeIcon icon={faPlus} size="2x" />
+//     </BaseUpdate>
+//   </>
+// );
+
 const ResultIcon = styled(FontAwesomeIcon)`
   transform: scale(${SCALE_600});
 `;
@@ -250,26 +282,195 @@ const Results = ({ baseHex, contentHex }) => {
   );
 };
 
-export const UserComposition = memo(({ idComp, baseHex, contentHex }) => {
+const ItemWrapper = styled.li`
+  position: relative;
+  transition-duration: ${SPEED_500}ms;
+  transition-property: opacity, transform;
+
+  /** React CSSTransition animation property when an item is in its DORMANT state. */
+  &.composition-enter,
+  &.composition-exit {
+    opacity: 0;
+    transform: scale(${SCALE_200});
+  }
+
+  /** React CSSTransition animation property when an item is in its ACTIVE state. */
+  &.composition-enter-active,
+  &.composition-exit-active {
+    opacity: 1;
+    transform: scale(${SCALE_500});
+  }
+`;
+// ${UserItem} {
+//   opacity: ${({ isUserDragging }) => (isUserDragging ? 0 : 1)};
+// }
+
+// ${UpdateComposition} {
+//   opacity: ${({ isUserDragging }) => (isUserDragging ? 1 : 0)};
+// }
+// ${({ isUserDragging }) =>
+//   isUserDragging
+//     ? css`
+//         > ${UserItem} {
+//           opacity: 0;
+//           pointer-events: none;
+//         }
+//       `
+//     : css`
+//         > ${UpdateComposition} {
+//           opacity: 0;
+//           pointer-events: none;
+//         }
+//       `}
+
+export const UserComposition = memo(({ idComp, baseHex, contentHex, dragHex, isUserDragging }) => {
+  const [isContentTargeted, setIsContentTargeted] = useState(false);
+  const [isBaseTargeted, setIsBaseTargeted] = useState(false);
+
   return (
     <ItemWrapper>
-      <UserItem>
+      <UserItem {...{ isUserDragging }}>
         <Examples {...{ baseHex, contentHex }}>
           <SmallText>The quick brown fox,</SmallText>
           <SmallText isBold>jumps over the lazy dog.</SmallText>
           <Icons />
           <Dividers />
+          {/*  */}
         </Examples>
         <Results {...{ baseHex, contentHex }} />
       </UserItem>
+      {/* <UpdateComposition {...{ isUserDragging, contentHex }} /> */}
+      <DropAreas {...{ isUserDragging }}>
+        <ContentUpdate
+          hex={isContentTargeted ? dragHex : contentHex}
+          isTargeted={isContentTargeted}
+          onDragOver={event => {
+            setIsContentTargeted(true);
+            event.preventDefault();
+          }}
+          onDragLeave={() => setIsContentTargeted(false)}
+        >
+          <FontAwesomeIcon icon={faPlus} size="2x" />
+        </ContentUpdate>
+        <BaseUpdate
+          hex={isBaseTargeted ? dragHex : baseHex}
+          isTargeted={isBaseTargeted}
+          onDragOver={event => {
+            setIsBaseTargeted(true);
+            event.preventDefault();
+          }}
+          onDragLeave={() => setIsBaseTargeted(false)}
+        >
+          <FontAwesomeIcon icon={faPlus} size="2x" />
+        </BaseUpdate>
+      </DropAreas>
     </ItemWrapper>
   );
 });
 
-export const AppendComposition = memo(props => {
+const DropButtons = styled.div`
+  ${positionAbsolute}
+  display: grid;
+  grid-gap: 24px;
+  padding: ${SPACE_400}px;
+  transition: opacity 250ms;
+  z-index: 1;
+`;
+
+const DropButton = styled(AddButton)`
+  /* position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 50%; */
+`;
+
+// const AddWrapper = styled(AddItem)`
+//   /* position: absolute;
+//   left: 0;
+//   top: 0;
+//   width: 100%;
+//   height: 50%; */
+
+//   ${({ isTargeted }) =>
+//     isTargeted
+//       ? css`
+//           ${DropButtons} ~ ${AddButton} {
+//             opacity: 0;
+//           }
+
+//           /* ${AddButton} {
+//             opacity: 0;
+//           } */
+//         `
+//       : css`
+//           ${DropButtons} {
+//             opacity: 0;
+//             pointer-events: none;
+//             z-index: -1;
+//           }
+//         `}
+// `;
+
+export const AppendComposition = memo(({ handleClick, handleDrop, isUserDragging }) => {
+  const [isAddTargeted, setIsAddTargeted] = useState(false);
+  const [isDropTargeted, setIsDropTargeted] = useState(false);
+  const [isContentTargeted, setIsContentTargeted] = useState(false);
+  const [isBaseTargeted, setIsBaseTargeted] = useState(false);
   return (
     // <li>
-    <AppendSwatch {...props} />
+    // <AppendSwatch {...props} />
     // </li>
+    <AddItem
+      isTargeted={isDropTargeted}
+      // onDragEnter
+      // onDragOver
+      // onDragExit
+      // onDragLeaveCapture
+      // onDragOver={event => {
+      onDragEnter={event => {
+        // console.log("QUERY");
+        // if (isUserDragging && !isDropTargeted) {
+        // if (isUserDragging) {
+        console.log("SET | true");
+        setIsDropTargeted(true);
+        // }
+        event.preventDefault();
+      }}
+    >
+      <DropButtons>
+        <DropButton
+          // isTargeted={isContentTargeted}
+          // onMouseEnter={() => setIsContentTargeted(true)}
+          // onMouseLeave={() => setIsContentTargeted(false)}
+          onDragLeave={() => {
+            // onDragExit={() => {
+            // console.log("QUERY | EXIT");
+            // if (!isUserDragging && isDropTargeted) {
+            // if (isUserDragging) {
+            console.log("SET | false");
+            setIsDropTargeted(false);
+            // }
+          }}
+        >
+          {/* <FontAwesomeIcon icon={faPlus} size="2x" /> */}
+        </DropButton>
+        <DropButton
+        // isTargeted={isBaseTargeted}
+        // onMouseEnter={() => setIsBaseTargeted(true)}
+        // onMouseLeave={() => setIsBaseTargeted(false)}
+        >
+          {/* <FontAwesomeIcon icon={faPlus} size="2x" /> */}
+        </DropButton>
+      </DropButtons>
+      <AddButton
+        isTargeted={isAddTargeted}
+        onClick={handleClick}
+        onMouseEnter={() => setIsAddTargeted(true)}
+        onMouseLeave={() => setIsAddTargeted(false)}
+      >
+        <FontAwesomeIcon icon={faPlus} size="2x" />
+      </AddButton>
+    </AddItem>
   );
 });

@@ -23,6 +23,8 @@ import {
   SPACE_600,
   LUMINANCE_SHADOW_500,
   createSwatch,
+  createOffsetColor,
+  createTargetColor,
   createFocusState,
   createFocusStateWithShadow,
   checkHasLowLuminance,
@@ -217,42 +219,43 @@ const ReorderTransformation = styled.div`
   }}
 `;
 
-const AddItem = styled.li`
+export const AddItem = styled.li`
   /** Force contents to take up ALL of the "cells" x/y space. */
   display: grid;
   padding: ${SPACE_400}px;
+  position: relative;
 `;
 
 export const AddButton = styled.button`
   appearance: none;
-  border: ${BORDER_WIDTH}px solid ${GRAY_900};
+  border: ${BORDER_WIDTH}px solid ${({ hex }) => createOffsetColor(hex)};
   border-radius: ${BORDER_RADIUS}px;
-  color: ${GRAY_900};
+  color: ${({ hex }) => createOffsetColor(hex)};
   cursor: pointer;
   display: block;
   height: 100%;
   transition-duration: ${SPEED_500}ms;
-  transition-property: box-shadow, background, transform, width, height;
+  transition-property: box-shadow, background, opacity, transform, width, height;
   width: 100%;
   outline: 0;
 
   ${({ isTargeted }) =>
     isTargeted
       ? css`
-          background: ${GRAY_500};
+          background: ${({ hex }) => createTargetColor(hex)};
           /* transform: scale(${SCALE_600}); */
           transform: translate(-${SPACE_300}px, -${SPACE_300}px);
           width: calc(100% + ${SPACE_400}px);
           height: calc(100% + ${SPACE_400}px);
         `
       : css`
-          background: ${GRAY_300};
+          background: ${({ hex }) => hex};
           /* transform: scale(${SCALE_300}); */
         `};
 
   &:focus,
   &:hover {
-    box-shadow: ${createFocusStateWithShadow(GRAY_300)};
+    box-shadow: ${({ hex }) => createFocusStateWithShadow(hex)};
   }
 `;
 
@@ -261,8 +264,6 @@ const Input = styled.input`
   appearance: none;
   opacity: 0;
 `;
-
-export const SwatchIcon = styled(FontAwesomeIcon)``;
 
 export const Swatches = SwatchList;
 
@@ -374,6 +375,7 @@ export const AppendSwatch = memo(({ handleClick, handleDrop }) => {
     <AddItem>
       <AddButton
         {...{ isTargeted }}
+        hex={GRAY_300}
         onClick={handleClick}
         onDragOver={event => {
           /*
@@ -396,7 +398,7 @@ export const AppendSwatch = memo(({ handleClick, handleDrop }) => {
           event.preventDefault();
         }}
       >
-        <SwatchIcon icon={faPlus} size="2x" />
+        <FontAwesomeIcon icon={faPlus} size="2x" />
       </AddButton>
     </AddItem>
   );
