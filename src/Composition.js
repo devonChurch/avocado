@@ -323,50 +323,70 @@ const ItemWrapper = styled.li`
 //         }
 //       `}
 
-export const UserComposition = memo(({ idComp, baseHex, contentHex, dragHex, isUserDragging }) => {
-  const [isContentTargeted, setIsContentTargeted] = useState(false);
-  const [isBaseTargeted, setIsBaseTargeted] = useState(false);
+export const UserComposition = memo(
+  ({
+    compId,
+    baseId,
+    contentId,
+    dragStartId,
+    baseHex,
+    contentHex,
+    dragHex,
+    isUserDragging,
+    handleDrop
+  }) => {
+    const [isContentTargeted, setIsContentTargeted] = useState(false);
+    const [isBaseTargeted, setIsBaseTargeted] = useState(false);
 
-  return (
-    <ItemWrapper>
-      <UserItem {...{ isUserDragging }}>
-        <Examples {...{ baseHex, contentHex }}>
-          <SmallText>The quick brown fox,</SmallText>
-          <SmallText isBold>jumps over the lazy dog.</SmallText>
-          <Icons />
-          <Dividers />
-          {/*  */}
-        </Examples>
-        <Results {...{ baseHex, contentHex }} />
-      </UserItem>
-      {/* <UpdateComposition {...{ isUserDragging, contentHex }} /> */}
-      <DropAreas {...{ isUserDragging }}>
-        <ContentUpdate
-          hex={isContentTargeted ? dragHex : contentHex}
-          isTargeted={isContentTargeted}
-          onDragOver={event => {
-            setIsContentTargeted(true);
-            event.preventDefault();
-          }}
-          onDragLeave={() => setIsContentTargeted(false)}
-        >
-          <FontAwesomeIcon icon={faPlus} size="2x" />
-        </ContentUpdate>
-        <BaseUpdate
-          hex={isBaseTargeted ? dragHex : baseHex}
-          isTargeted={isBaseTargeted}
-          onDragOver={event => {
-            setIsBaseTargeted(true);
-            event.preventDefault();
-          }}
-          onDragLeave={() => setIsBaseTargeted(false)}
-        >
-          <FontAwesomeIcon icon={faPlus} size="2x" />
-        </BaseUpdate>
-      </DropAreas>
-    </ItemWrapper>
-  );
-});
+    return (
+      <ItemWrapper>
+        <UserItem {...{ isUserDragging }}>
+          <Examples {...{ baseHex, contentHex }}>
+            <SmallText>The quick brown fox,</SmallText>
+            <SmallText isBold>jumps over the lazy dog.</SmallText>
+            <Icons />
+            <Dividers />
+            {/*  */}
+          </Examples>
+          <Results {...{ baseHex, contentHex }} />
+        </UserItem>
+        {/* <UpdateComposition {...{ isUserDragging, contentHex }} /> */}
+        <DropAreas {...{ isUserDragging }}>
+          <ContentUpdate
+            hex={isContentTargeted ? dragHex : contentHex}
+            isTargeted={isContentTargeted}
+            onDragOver={event => {
+              setIsContentTargeted(true);
+              event.preventDefault();
+            }}
+            onDragLeave={() => setIsContentTargeted(false)}
+            onDrop={event => {
+              handleDrop(compId, { contentId: dragStartId, baseId });
+              event.preventDefault();
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} size="2x" />
+          </ContentUpdate>
+          <BaseUpdate
+            hex={isBaseTargeted ? dragHex : baseHex}
+            isTargeted={isBaseTargeted}
+            onDragOver={event => {
+              setIsBaseTargeted(true);
+              event.preventDefault();
+            }}
+            onDragLeave={() => setIsBaseTargeted(false)}
+            onDrop={event => {
+              handleDrop(compId, { contentId, baseId: dragStartId });
+              event.preventDefault();
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} size="2x" />
+          </BaseUpdate>
+        </DropAreas>
+      </ItemWrapper>
+    );
+  }
+);
 
 const DropButtons = styled.div`
   ${positionAbsolute}

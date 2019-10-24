@@ -29,8 +29,12 @@ const GlobalStyle = createGlobalStyle`
 
 const createSwatchKey = () => nanoid();
 const createCompositionKey = createSwatchKey;
+
 const createIndexComparison = idOne => ([idTwo]) => idOne === idTwo;
 const findSwatchIndexFromId = (swatches, id) => swatches.findIndex(createIndexComparison(id));
+const findCompositionIndexFromId = (compositions, id) =>
+  compositions.findIndex(createIndexComparison(id));
+
 const createReorderTransform = (x = 0, y = 0) => `transform: translate(${x}%, ${y}%);`;
 
 /**
@@ -170,6 +174,17 @@ const App = () => {
     setCompositions(new Map([...compositions, [createCompositionKey(), hexes]]));
   };
 
+  const updateComposition = (compId, composition) => {
+    const prevComps = [...compositions];
+    const compIndex = findCompositionIndexFromId(prevComps, compId);
+    const nextComps = [
+      ...prevComps.slice(0, compIndex),
+      [compId, composition],
+      ...prevComps.slice(compIndex + 1)
+    ];
+    setCompositions(new Map(nextComps));
+  };
+
   return (
     <>
       <GlobalStyle />
@@ -205,10 +220,11 @@ const App = () => {
             <CSSTransition key={compId} timeout={5000} classNames="composition">
               <UserComposition
                 key={compId}
-                {...{ compId, isUserDragging }}
+                {...{ compId, baseId, contentId, dragStartId, isUserDragging }}
                 baseHex={swatches.get(baseId)}
                 contentHex={swatches.get(contentId)}
                 dragHex={isUserDragging && swatches.get(dragStartId)}
+                handleDrop={updateComposition}
               />
             </CSSTransition>
           );
