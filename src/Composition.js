@@ -66,7 +66,7 @@ const DividerList = styled.ul`
 const ResultList = styled.ul`
   ${resetList}
   display: flex;
-  border-radius: 0 0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px;
+  // border-radius: 0 0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px;
   background: ${GRAY_300};
   color: ${GRAY_900};
   justify-content: space-between;
@@ -103,7 +103,7 @@ const UserItem = styled.div`
 `;
 
 const Examples = styled.div`
-  border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
+  // border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
@@ -128,7 +128,7 @@ const Examples = styled.div`
       return css`
         &:after {
           ${positionAbsolute}
-          border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
+          // border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
           box-shadow: ${LUMINANCE_SHADOW_500};
           content: "";
           display: block;
@@ -148,17 +148,6 @@ const SmallText = styled.span`
   font-size: ${({ isBold }) => `${isBold ? 14 : 16}px`};
   font-weight: ${({ isBold }) => (isBold ? "bold" : "initial")};
 `;
-
-// const AddButton = styled.button`
-//   appearance: none;
-//   border: 2px dashed gray;
-//   background: lightgray;
-//   display: block;
-//   width: 100%;
-//   height: 100%;
-// `;
-
-const AddDropZone = styled.div``;
 
 const Divider = styled.div`
   border-radius: ${BORDER_RADIUS}px;
@@ -223,17 +212,6 @@ const Level = ({ children: level }) => {
   return <span>{characters}</span>;
 };
 
-const ContentUpdate = styled(AddButton)`
-  /* height: calc(50% - 12px); */
-  /* z-index: 1;
-  transform: scale(SCALE_500); */
-`;
-
-const BaseUpdate = styled(ContentUpdate)`
-  /* top: initial;
-  bottom: 0; */
-`;
-
 const DropAreas = styled.div`
   ${positionAbsolute}
   display: grid;
@@ -250,17 +228,6 @@ const DropAreas = styled.div`
       transform: scale(${SCALE_600});
     `}
 `;
-
-// const UpdateComposition = ({ isUserDragging }) => (
-//   <>
-//     <ContentUpdate {...{ isUserDragging }}>
-//       <FontAwesomeIcon icon={faPlus} size="2x" />
-//     </ContentUpdate>
-//     <BaseUpdate {...{ isUserDragging }}>
-//       <FontAwesomeIcon icon={faPlus} size="2x" />
-//     </BaseUpdate>
-//   </>
-// );
 
 const ResultIcon = styled(FontAwesomeIcon)`
   transform: scale(${SCALE_600});
@@ -301,27 +268,18 @@ const ItemWrapper = styled.li`
     transform: scale(${SCALE_500});
   }
 `;
-// ${UserItem} {
-//   opacity: ${({ isUserDragging }) => (isUserDragging ? 0 : 1)};
-// }
 
-// ${UpdateComposition} {
-//   opacity: ${({ isUserDragging }) => (isUserDragging ? 1 : 0)};
-// }
-// ${({ isUserDragging }) =>
-//   isUserDragging
-//     ? css`
-//         > ${UserItem} {
-//           opacity: 0;
-//           pointer-events: none;
-//         }
-//       `
-//     : css`
-//         > ${UpdateComposition} {
-//           opacity: 0;
-//           pointer-events: none;
-//         }
-//       `}
+const AddCompositionButton = styled(AddButton)`
+  ${({ isActive }) =>
+    isActive
+      ? css`
+          opacity: 1;
+        `
+      : css`
+          opacity: 0;
+          pointer-events: none;
+        `}
+`;
 
 export const UserComposition = memo(
   ({
@@ -346,11 +304,9 @@ export const UserComposition = memo(
             <SmallText isBold>jumps over the lazy dog.</SmallText>
             <Icons />
             <Dividers />
-            {/*  */}
           </Examples>
           <Results {...{ baseHex, contentHex }} />
         </UserItem>
-        {/* <UpdateComposition {...{ isUserDragging, contentHex }} /> */}
         <DropAreas {...{ isUserDragging }}>
           <ContentUpdate
             hex={isContentTargeted ? dragHex : contentHex}
@@ -362,6 +318,8 @@ export const UserComposition = memo(
             onDragLeave={() => setIsContentTargeted(false)}
             onDrop={event => {
               handleDrop(compId, { contentId: dragStartId, baseId });
+              setIsContentTargeted(false);
+              setIsBaseTargeted(false);
               event.preventDefault();
             }}
           >
@@ -377,6 +335,8 @@ export const UserComposition = memo(
             onDragLeave={() => setIsBaseTargeted(false)}
             onDrop={event => {
               handleDrop(compId, { contentId, baseId: dragStartId });
+              setIsContentTargeted(false);
+              setIsBaseTargeted(false);
               event.preventDefault();
             }}
           >
@@ -388,109 +348,58 @@ export const UserComposition = memo(
   }
 );
 
-const DropButtons = styled.div`
-  ${positionAbsolute}
-  display: grid;
-  grid-gap: 24px;
-  padding: ${SPACE_400}px;
-  transition: opacity 250ms;
-  z-index: 1;
-`;
-
-const DropButton = styled(AddButton)`
-  /* position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 50%; */
-`;
-
-// const AddWrapper = styled(AddItem)`
-//   /* position: absolute;
-//   left: 0;
-//   top: 0;
-//   width: 100%;
-//   height: 50%; */
-
-//   ${({ isTargeted }) =>
-//     isTargeted
-//       ? css`
-//           ${DropButtons} ~ ${AddButton} {
-//             opacity: 0;
-//           }
-
-//           /* ${AddButton} {
-//             opacity: 0;
-//           } */
-//         `
-//       : css`
-//           ${DropButtons} {
-//             opacity: 0;
-//             pointer-events: none;
-//             z-index: -1;
-//           }
-//         `}
-// `;
-
-export const AppendComposition = memo(({ handleClick, handleDrop, isUserDragging }) => {
-  const [isAddTargeted, setIsAddTargeted] = useState(false);
-  const [isDropTargeted, setIsDropTargeted] = useState(false);
-  const [isContentTargeted, setIsContentTargeted] = useState(false);
-  const [isBaseTargeted, setIsBaseTargeted] = useState(false);
-  return (
-    // <li>
-    // <AppendSwatch {...props} />
-    // </li>
-    <AddItem
-      isTargeted={isDropTargeted}
-      // onDragEnter
-      // onDragOver
-      // onDragExit
-      // onDragLeaveCapture
-      // onDragOver={event => {
-      onDragEnter={event => {
-        // console.log("QUERY");
-        // if (isUserDragging && !isDropTargeted) {
-        // if (isUserDragging) {
-        console.log("SET | true");
-        setIsDropTargeted(true);
-        // }
-        event.preventDefault();
-      }}
-    >
-      <DropButtons>
-        <DropButton
-          // isTargeted={isContentTargeted}
-          // onMouseEnter={() => setIsContentTargeted(true)}
-          // onMouseLeave={() => setIsContentTargeted(false)}
-          onDragLeave={() => {
-            // onDragExit={() => {
-            // console.log("QUERY | EXIT");
-            // if (!isUserDragging && isDropTargeted) {
-            // if (isUserDragging) {
-            console.log("SET | false");
-            setIsDropTargeted(false);
-            // }
-          }}
+export const AppendComposition = memo(
+  ({ dragHex, dragStartId, handleClick, handleDrop, isUserDragging }) => {
+    const [isAddTargeted, setIsAddTargeted] = useState(false);
+    const [isContentTargeted, setIsContentTargeted] = useState(false);
+    const [isBaseTargeted, setIsBaseTargeted] = useState(false);
+    return (
+      <AddItem>
+        <DropAreas {...{ isUserDragging }}>
+          <ContentUpdate
+            hex={isContentTargeted ? dragHex : GRAY_300}
+            isTargeted={isContentTargeted}
+            onDragOver={event => {
+              setIsContentTargeted(true);
+              event.preventDefault();
+            }}
+            onDragLeave={() => setIsContentTargeted(false)}
+            onDrop={event => {
+              handleDrop({ contentId: dragStartId });
+              event.preventDefault();
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} size="2x" />
+          </ContentUpdate>
+          <BaseUpdate
+            hex={isBaseTargeted ? dragHex : GRAY_300}
+            isTargeted={isBaseTargeted}
+            onDragOver={event => {
+              setIsBaseTargeted(true);
+              event.preventDefault();
+            }}
+            onDragLeave={() => setIsBaseTargeted(false)}
+            onDrop={event => {
+              handleDrop({ baseId: dragStartId });
+              setIsContentTargeted(false);
+              setIsBaseTargeted(false);
+              event.preventDefault();
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} size="2x" />
+          </BaseUpdate>
+        </DropAreas>
+        <AddCompositionButton
+          hex={GRAY_300}
+          isActive={!isUserDragging}
+          isTargeted={isAddTargeted}
+          onClick={handleClick}
+          onMouseEnter={() => setIsAddTargeted(true)}
+          onMouseLeave={() => setIsAddTargeted(false)}
         >
-          {/* <FontAwesomeIcon icon={faPlus} size="2x" /> */}
-        </DropButton>
-        <DropButton
-        // isTargeted={isBaseTargeted}
-        // onMouseEnter={() => setIsBaseTargeted(true)}
-        // onMouseLeave={() => setIsBaseTargeted(false)}
-        >
-          {/* <FontAwesomeIcon icon={faPlus} size="2x" /> */}
-        </DropButton>
-      </DropButtons>
-      <AddButton
-        isTargeted={isAddTargeted}
-        onClick={handleClick}
-        onMouseEnter={() => setIsAddTargeted(true)}
-        onMouseLeave={() => setIsAddTargeted(false)}
-      >
-        <FontAwesomeIcon icon={faPlus} size="2x" />
-      </AddButton>
-    </AddItem>
-  );
-});
+          <FontAwesomeIcon icon={faPlus} size="2x" />
+        </AddCompositionButton>
+      </AddItem>
+    );
+  }
+);

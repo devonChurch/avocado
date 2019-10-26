@@ -82,7 +82,7 @@ const UserItem = styled.div`
       `;
     }
 
-    if (isDragged || isUserDragging) {
+    if (isUserDragging) {
       styles += `
         transform: scale(${SCALE_300});
       `;
@@ -98,7 +98,7 @@ const UserItem = styled.div`
      * + Changing `background: white;` ONLY changes the placeholder "dormant"
      *   swatch =)
      */
-    if (isDragged) {
+    if (isDragged && isUserDragging) {
       styles += `
         background: ${WHITE};
       `;
@@ -337,6 +337,7 @@ export const UserSwatch = memo(
         }}
         onDragLeave={handleDragExit}
         onDrop={event => {
+          setIsDragged(false);
           handleDrop(id);
           /*
            * MDN suggests applying `preventDefault` on specific DnD event hooks.
@@ -369,13 +370,13 @@ export const UserSwatch = memo(
   }
 );
 
-export const AppendSwatch = memo(({ handleClick, handleDrop }) => {
+export const AppendSwatch = memo(({ dragHex, handleClick, handleDrop }) => {
   const [isTargeted, setIsTargeted] = useState(false);
   return (
     <AddItem>
       <AddButton
         {...{ isTargeted }}
-        hex={GRAY_300}
+        hex={isTargeted && dragHex ? dragHex : GRAY_300}
         onClick={handleClick}
         onDragOver={event => {
           /*

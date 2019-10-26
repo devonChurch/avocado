@@ -42,6 +42,15 @@ export const LUMINANCE_SHADOW_500 = `inset 0 0 0 ${BORDER_WIDTH}px ${createSwatc
   0.1
 )}`;
 
+export const findColorComplementFromSwatches = (compareId, swatches) => {
+  const compareHex = swatches.get(compareId);
+  const hexes = [...swatches.values()];
+  const complementHex = tinyColor.mostReadable(compareHex, hexes).toHexString();
+  const [complementId] = [...swatches.entries()].find(([, hex]) => hex === complementHex);
+
+  return complementId;
+};
+
 export const checkHasLowLuminance = hex => createSwatch(hex).getLuminance() > 0.9;
 
 const updateLuminanceStatic = (lighten, darken) => (isLuminant, luminance) =>
@@ -65,7 +74,6 @@ const createColorCompanion = (createUpdate, alpha = 1) => hex => {
 };
 
 export const createOffsetColor = createColorCompanion(updateLuminanceStatic(0.2, 0.8));
-// export const createTargetColor = createColorCompanion(updateLuminanceDynamic(20));
 export const createTargetColor = hex => hex;
 export const createFocusColor = createColorCompanion(updateLuminanceStatic(0.3, 0.7), 0.5);
 

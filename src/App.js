@@ -6,7 +6,15 @@ import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
-import { SWATCH_WIDTH, BLACK, SPACE_600, SPEED_500 } from "./utils";
+import {
+  SWATCH_WIDTH,
+  BLACK,
+  SPACE_600,
+  SPEED_500,
+  WHITE,
+  findColorComplementFromSwatches,
+  createSwatch
+} from "./utils";
 
 const GlobalStyle = createGlobalStyle`
   html {
@@ -85,32 +93,23 @@ const App = () => {
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
   const [swatches, setSwatches] = useState(
     new Map([
-      ["1", "#0707ff"],
-      ["2", "#00CAFB"],
-      ["3", "#F8CAFB"],
-      ["4", "#F8CA66"],
-      ["5", "#F86D66"],
-      ["6", "#0707ff"],
-      ["7", "#00CAFB"],
-      ["8", "#F8CAFB"],
-      ["9", "#F8CA66"],
-      ["10", "#F86D66"]
+      ["1", createSwatch("#0707FF").toHexString()],
+      ["2", createSwatch("#00CAFB").toHexString()],
+      ["3", createSwatch("#F8CAFB").toHexString()],
+      ["4", createSwatch("#F8CA66").toHexString()],
+      ["5", createSwatch("#F86D66").toHexString()],
+      ["6", createSwatch("#0707ff").toHexString()],
+      ["7", createSwatch("#00CAFB").toHexString()],
+      ["8", createSwatch("#F8CAFB").toHexString()],
+      ["9", createSwatch("#F8CA66").toHexString()],
+      ["10", createSwatch("#F86D66").toHexString()]
     ])
-  );
-
-  const addNewSwatch = () => {
-    const [, lastHex] = [...swatches].pop() || [];
-    setSwatches(new Map([...swatches, [createSwatchKey(), lastHex || BLACK]]));
-  };
-
-  const updateUserSwatch = useCallback(
-    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
-    [swatches]
   );
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const isUserDragging = !!dragStartId;
+  const dragHex = isUserDragging && swatches.get(dragStartId);
 
   const removeDragStartId = () => setDragStartId(null);
   const removeDragOverId = useCallback(() => setDragOverId(null), []);
@@ -118,6 +117,23 @@ const App = () => {
     removeDragStartId(null);
     removeDragOverId(null);
   }, []);
+
+  const appendSwatch = hex => setSwatches(new Map([...swatches, [createSwatchKey(), hex]]));
+
+  const appendLastListedSwatch = () => {
+    const [, lastHex] = [...swatches].pop() || [];
+    appendSwatch(lastHex || BLACK);
+  };
+
+  const appendDraggedSwatch = () => {
+    appendSwatch(dragHex);
+    removeDragIds();
+  };
+
+  const updateUserSwatch = useCallback(
+    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
+    [swatches]
+  );
 
   const moveSwatchToNewLocation = useCallback(
     dropId => {
@@ -148,12 +164,6 @@ const App = () => {
     [swatches, dragStartId]
   );
 
-  const duplicateAndAppendNewSwatch = () => {
-    const dropHex = swatches.get(dragStartId);
-    setSwatches(new Map([...swatches, [createSwatchKey(), dropHex]]));
-    removeDragIds();
-  };
-
   const createReorderTransformHandler = (...args) =>
     calculateReorderTransform([...swatches], ...args);
 
@@ -169,9 +179,21 @@ const App = () => {
     ])
   );
 
-  const addNewComposition = () => {
-    const [, hexes] = [...compositions].pop() || [];
-    setCompositions(new Map([...compositions, [createCompositionKey(), hexes]]));
+  const appendComposition = swatchIds => {
+    setCompositions(new Map([...compositions, [createCompositionKey(), swatchIds]]));
+  };
+
+  const appendLastListedComposition = () => {
+    const [, { baseId, contentId }] = [...compositions].pop() || [];
+    appendComposition({ baseId, contentId });
+  };
+
+  const appendCompositionFromDraggedSwatch = ({ baseId, contentId }) => {
+    appendComposition({
+      baseId: baseId || findColorComplementFromSwatches(contentId, swatches),
+      contentId: contentId || findColorComplementFromSwatches(baseId, swatches)
+    });
+    removeDragIds();
   };
 
   const updateComposition = (compId, composition) => {
@@ -210,7 +232,11 @@ const App = () => {
             </CSSTransition>
           );
         })}
-        <AppendSwatch handleClick={addNewSwatch} handleDrop={duplicateAndAppendNewSwatch} />
+        <AppendSwatch
+          {...{ dragHex }}
+          handleClick={appendLastListedSwatch}
+          handleDrop={appendDraggedSwatch}
+        />
       </TransitionGroup>
       <TransitionGroup component={Compositions}>
         {[...compositions].map(comp => {
@@ -220,16 +246,19 @@ const App = () => {
             <CSSTransition key={compId} timeout={5000} classNames="composition">
               <UserComposition
                 key={compId}
-                {...{ compId, baseId, contentId, dragStartId, isUserDragging }}
+                {...{ compId, baseId, contentId, dragStartId, dragHex, isUserDragging }}
                 baseHex={swatches.get(baseId)}
                 contentHex={swatches.get(contentId)}
-                dragHex={isUserDragging && swatches.get(dragStartId)}
                 handleDrop={updateComposition}
               />
             </CSSTransition>
           );
         })}
-        <AppendComposition handleClick={addNewComposition} />
+        <AppendComposition
+          {...{ dragStartId, dragHex, isUserDragging }}
+          handleClick={appendLastListedComposition}
+          handleDrop={appendCompositionFromDraggedSwatch}
+        />
       </TransitionGroup>
     </>
   );
