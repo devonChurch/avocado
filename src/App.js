@@ -93,16 +93,18 @@ const App = () => {
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
   const [swatches, setSwatches] = useState(
     new Map([
-      ["1", createSwatch("#0707FF").toHexString()],
-      ["2", createSwatch("#00CAFB").toHexString()],
-      ["3", createSwatch("#F8CAFB").toHexString()],
-      ["4", createSwatch("#F8CA66").toHexString()],
-      ["5", createSwatch("#F86D66").toHexString()],
-      ["6", createSwatch("#0707ff").toHexString()],
-      ["7", createSwatch("#00CAFB").toHexString()],
-      ["8", createSwatch("#F8CAFB").toHexString()],
-      ["9", createSwatch("#F8CA66").toHexString()],
-      ["10", createSwatch("#F86D66").toHexString()]
+      // Green.
+      ["1", createSwatch("#E1FAF3").toHexString()],
+      ["2", createSwatch("#b2fbe4").toHexString()],
+      ["3", createSwatch("#00ffb8").toHexString()],
+      ["4", createSwatch("#119f72").toHexString()],
+      ["5", createSwatch("#1E4C3F").toHexString()],
+      // Gray.
+      ["6", createSwatch("#EAF0EE").toHexString()],
+      ["7", createSwatch("#b4c5c0").toHexString()],
+      ["8", createSwatch("#8DA79F").toHexString()],
+      ["9", createSwatch("#5c716b").toHexString()],
+      ["10", createSwatch("#40504C").toHexString()]
     ])
   );
 
@@ -172,10 +174,11 @@ const App = () => {
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
   const [compositions, setCompositions] = useState(
     new Map([
-      ["1", { baseId: "1", contentId: "2" }],
-      ["2", { baseId: "3", contentId: "4" }],
-      ["3", { baseId: "5", contentId: "6" }],
-      ["4", { baseId: "7", contentId: "8" }]
+      ["1", { baseId: "5", contentId: "3" }],
+      ["2", { baseId: "3", contentId: "5" }],
+      ["3", { baseId: "2", contentId: "5" }],
+      ["4", { baseId: "10", contentId: "2" }],
+      ["5", { baseId: "6", contentId: "9" }]
     ])
   );
 
