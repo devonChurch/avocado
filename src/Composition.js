@@ -66,7 +66,7 @@ const DividerList = styled.ul`
 const ResultList = styled.ul`
   ${resetList}
   display: flex;
-  // border-radius: 0 0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px;
+  border-radius: 0 0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px;
   background: ${GRAY_300};
   color: ${GRAY_900};
   justify-content: space-between;
@@ -103,7 +103,7 @@ const UserItem = styled.div`
 `;
 
 const Examples = styled.div`
-  // border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
+  border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
@@ -128,7 +128,7 @@ const Examples = styled.div`
       return css`
         &:after {
           ${positionAbsolute}
-          // border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
+          border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
           box-shadow: ${LUMINANCE_SHADOW_500};
           content: "";
           display: block;
@@ -308,7 +308,7 @@ export const UserComposition = memo(
           <Results {...{ baseHex, contentHex }} />
         </UserItem>
         <DropAreas {...{ isUserDragging }}>
-          <ContentUpdate
+          <AddButton
             hex={isContentTargeted ? dragHex : contentHex}
             isTargeted={isContentTargeted}
             onDragOver={event => {
@@ -324,8 +324,8 @@ export const UserComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </ContentUpdate>
-          <BaseUpdate
+          </AddButton>
+          <AddButton
             hex={isBaseTargeted ? dragHex : baseHex}
             isTargeted={isBaseTargeted}
             onDragOver={event => {
@@ -341,7 +341,7 @@ export const UserComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </BaseUpdate>
+          </AddButton>
         </DropAreas>
       </ItemWrapper>
     );
@@ -356,7 +356,7 @@ export const AppendComposition = memo(
     return (
       <AddItem>
         <DropAreas {...{ isUserDragging }}>
-          <ContentUpdate
+          <AddButton
             hex={isContentTargeted ? dragHex : GRAY_300}
             isTargeted={isContentTargeted}
             onDragOver={event => {
@@ -370,8 +370,8 @@ export const AppendComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </ContentUpdate>
-          <BaseUpdate
+          </AddButton>
+          <AddButton
             hex={isBaseTargeted ? dragHex : GRAY_300}
             isTargeted={isBaseTargeted}
             onDragOver={event => {
@@ -387,7 +387,7 @@ export const AppendComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </BaseUpdate>
+          </AddButton>
         </DropAreas>
         <AddCompositionButton
           hex={GRAY_300}

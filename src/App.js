@@ -116,7 +116,7 @@ const App = () => {
   const removeDragIds = useCallback(() => {
     removeDragStartId(null);
     removeDragOverId(null);
-  }, []);
+  }, [removeDragOverId]);
 
   const appendSwatch = hex => setSwatches(new Map([...swatches, [createSwatchKey(), hex]]));
 
@@ -161,7 +161,7 @@ const App = () => {
       setSwatches(nextSwatches);
       removeDragIds();
     },
-    [swatches, dragStartId]
+    [swatches, dragStartId, removeDragIds]
   );
 
   const createReorderTransformHandler = (...args) =>
@@ -196,42 +196,43 @@ const App = () => {
     removeDragIds();
   };
 
-  const updateComposition = (compId, composition) => {
-    const prevComps = [...compositions];
-    const compIndex = findCompositionIndexFromId(prevComps, compId);
-    const nextComps = [
-      ...prevComps.slice(0, compIndex),
-      [compId, composition],
-      ...prevComps.slice(compIndex + 1)
-    ];
-    setCompositions(new Map(nextComps));
-  };
+  const updateComposition = useCallback(
+    (compId, composition) => {
+      const prevComps = [...compositions];
+      const compIndex = findCompositionIndexFromId(prevComps, compId);
+      const nextComps = [
+        ...prevComps.slice(0, compIndex),
+        [compId, composition],
+        ...prevComps.slice(compIndex + 1)
+      ];
+      setCompositions(new Map(nextComps));
+    },
+    [compositions]
+  );
 
   return (
     <>
       <GlobalStyle />
       <TransitionGroup component={Swatches}>
-        {[...swatches].map(([id, hex], swatchIndex) => {
-          return (
-            <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
-              <UserSwatch
-                key={id}
-                {...{ id, hex, isUserDragging }}
-                handleChange={updateUserSwatch}
-                handleDragStart={setDragStartId}
-                handleDragOver={setDragOverId}
-                handleDragExit={removeDragOverId}
-                handleDragEnd={removeDragIds}
-                handleDrop={moveSwatchToNewLocation}
-                createReorderTransform={createReorderTransformHandler(
-                  dragStartId,
-                  dragOverId,
-                  swatchIndex
-                )}
-              />
-            </CSSTransition>
-          );
-        })}
+        {[...swatches].map(([id, hex], swatchIndex) => (
+          <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
+            <UserSwatch
+              key={id}
+              {...{ id, hex, isUserDragging }}
+              handleChange={updateUserSwatch}
+              handleDragStart={setDragStartId}
+              handleDragOver={setDragOverId}
+              handleDragExit={removeDragOverId}
+              handleDragEnd={removeDragIds}
+              handleDrop={moveSwatchToNewLocation}
+              createReorderTransform={createReorderTransformHandler(
+                dragStartId,
+                dragOverId,
+                swatchIndex
+              )}
+            />
+          </CSSTransition>
+        ))}
         <AppendSwatch
           {...{ dragHex }}
           handleClick={appendLastListedSwatch}
@@ -239,21 +240,17 @@ const App = () => {
         />
       </TransitionGroup>
       <TransitionGroup component={Compositions}>
-        {[...compositions].map(comp => {
-          const [compId, { baseId, contentId }] = comp;
-
-          return (
-            <CSSTransition key={compId} timeout={5000} classNames="composition">
-              <UserComposition
-                key={compId}
-                {...{ compId, baseId, contentId, dragStartId, dragHex, isUserDragging }}
-                baseHex={swatches.get(baseId)}
-                contentHex={swatches.get(contentId)}
-                handleDrop={updateComposition}
-              />
-            </CSSTransition>
-          );
-        })}
+        {[...compositions].map(([compId, { baseId, contentId }]) => (
+          <CSSTransition key={compId} timeout={5000} classNames="composition">
+            <UserComposition
+              key={compId}
+              {...{ compId, baseId, contentId, dragStartId, dragHex, isUserDragging }}
+              baseHex={swatches.get(baseId)}
+              contentHex={swatches.get(contentId)}
+              handleDrop={updateComposition}
+            />
+          </CSSTransition>
+        ))}
         <AppendComposition
           {...{ dragStartId, dragHex, isUserDragging }}
           handleClick={appendLastListedComposition}
