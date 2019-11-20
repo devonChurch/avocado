@@ -182,6 +182,20 @@ const App = () => {
     ])
   );
 
+  const [activeCompositionId, setActiveCompositionId] = useState(null);
+  const removeActiveCompositionId = () => setActiveCompositionId(null);
+
+  const setSwatchAppearanceAgainstCompositionTarget = swatchId => {
+    if (!activeCompositionId) return;
+    const composition = compositions.get(activeCompositionId);
+    const hasBase = composition.baseId === swatchId;
+    const hasContent = composition.contentId === swatchId;
+    const shouldSwatchPronounce = hasBase || hasContent;
+    const shouldSwatchRegress = !shouldSwatchPronounce && activeCompositionId;
+
+    return { shouldSwatchPronounce, shouldSwatchRegress };
+  };
+
   const appendComposition = swatchIds => {
     setCompositions(new Map([...compositions, [createCompositionKey(), swatchIds]]));
   };
@@ -221,7 +235,7 @@ const App = () => {
           <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
             <UserSwatch
               key={id}
-              {...{ id, hex, isUserDragging }}
+              {...{ id, hex, isUserDragging, ...setSwatchAppearanceAgainstCompositionTarget(id) }}
               handleChange={updateUserSwatch}
               handleDragStart={setDragStartId}
               handleDragOver={setDragOverId}
@@ -247,7 +261,16 @@ const App = () => {
           <CSSTransition key={compId} timeout={5000} classNames="composition">
             <UserComposition
               key={compId}
-              {...{ compId, baseId, contentId, dragStartId, dragHex, isUserDragging }}
+              {...{
+                compId,
+                baseId,
+                contentId,
+                dragStartId,
+                dragHex,
+                isUserDragging,
+                setActiveCompositionId,
+                removeActiveCompositionId
+              }}
               baseHex={swatches.get(baseId)}
               contentHex={swatches.get(contentId)}
               handleDrop={updateComposition}

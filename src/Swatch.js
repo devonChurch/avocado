@@ -53,7 +53,7 @@ const UserItem = styled.div`
   transition-duration: ${SPEED_700}ms, ${SPEED_500}ms, ${SPEED_700}ms, ${SPEED_700}ms;
   transition-property: background, box-shadow, transform, border;
 
-  ${({ hex, isUserDragging, isDragged, isAboutToDrag }) => {
+  ${({ hex, isUserDragging, isDragged, isAboutToDrag, shouldSwatchRegress }) => {
     let styles = "";
 
     /**
@@ -76,7 +76,7 @@ const UserItem = styled.div`
       `;
     }
 
-    if (isDragged || isUserDragging || isAboutToDrag) {
+    if (isDragged || isUserDragging || isAboutToDrag || shouldSwatchRegress) {
       styles += `
         border-radius: ${BORDER_RADIUS}px;
       `;
@@ -135,6 +135,20 @@ const UserItem = styled.div`
   }}
 `;
 
+const swatchActiveState = css`
+  z-index: 10;
+
+  ${UserItem} {
+    box-shadow: ${({ hex }) => createFocusStateWithShadow(hex)};
+    border-radius: ${BORDER_RADIUS}px;
+    outline: 0;
+
+    &:after {
+      opacity: 0;
+    }
+  }
+`;
+
 const DragHitBox = styled.li`
   position: relative;
   transition-duration: ${SPEED_500}ms;
@@ -157,19 +171,18 @@ const DragHitBox = styled.li`
     css`
       &:focus-within,
       &:hover {
-        z-index: 10;
-
-        ${UserItem} {
-          box-shadow: ${({ hex }) => createFocusStateWithShadow(hex)};
-          border-radius: ${BORDER_RADIUS}px;
-          outline: 0;
-
-          &:after {
-            opacity: 0;
-          }
-        }
+        ${swatchActiveState}
       }
     `}
+
+  ${({ shouldSwatchRegress }) =>
+    shouldSwatchRegress &&
+    css`
+      opacity: 0.25;
+      transform: scale(${SCALE_300});
+    `}
+
+  ${({ shouldSwatchPronounce }) => shouldSwatchPronounce && swatchActiveState}
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
@@ -278,7 +291,9 @@ export const UserSwatch = memo(
     handleDragEnd,
     handleDrop,
     isUserDragging,
-    createReorderTransform
+    createReorderTransform,
+    shouldSwatchPronounce,
+    shouldSwatchRegress
   }) => {
     const [isDragged, setIsDragged] = useState(false);
     const [isAboutToDrag, setIsAboutToDrag] = useState(false);
@@ -301,7 +316,7 @@ export const UserSwatch = memo(
 
     return (
       <DragHitBox
-        {...{ isDragged, isUserDragging, hex }}
+        {...{ isDragged, isUserDragging, hex, shouldSwatchPronounce, shouldSwatchRegress }}
         key={`${id}_DragHitBox`}
         draggable
         ref={swatchRef}
@@ -353,7 +368,10 @@ export const UserSwatch = memo(
           key={`${id}_ReorderTransformation`}
           reorderTransform={createReorderTransform(swatchRef.current)}
         >
-          <UserItem key={`${id}_UserItem`} {...{ hex, isDragged, isUserDragging, isAboutToDrag }} />
+          <UserItem
+            key={`${id}_UserItem`}
+            {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress }}
+          />
           <Input
             key={`${id}_Input`}
             type="color"

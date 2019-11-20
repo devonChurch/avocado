@@ -291,14 +291,20 @@ export const UserComposition = memo(
     contentHex,
     dragHex,
     isUserDragging,
-    handleDrop
+    handleDrop,
+    setActiveCompositionId,
+    removeActiveCompositionId
   }) => {
     const [isContentTargeted, setIsContentTargeted] = useState(false);
     const [isBaseTargeted, setIsBaseTargeted] = useState(false);
 
     return (
       <ItemWrapper>
-        <UserItem {...{ isUserDragging }}>
+        <UserItem
+          {...{ isUserDragging }}
+          onMouseEnter={() => setActiveCompositionId(compId)}
+          onMouseLeave={removeActiveCompositionId}
+        >
           <Examples {...{ baseHex, contentHex }}>
             <SmallText>The quick brown fox,</SmallText>
             <SmallText isBold>jumps over the lazy dog.</SmallText>
