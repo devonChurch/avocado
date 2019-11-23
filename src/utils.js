@@ -1,5 +1,6 @@
 import { css } from "styled-components";
 import tinyColor from "tinycolor2";
+import qs from "qs";
 
 export const createSwatch = hex => tinyColor(hex);
 
@@ -94,3 +95,51 @@ export const positionAbsolute = css`
   width: 100%;
   height: 100%;
 `;
+
+const defaultSwatches = new Map([
+  // Green.
+  ["1", createSwatch("#E1FAF3").toHexString()],
+  ["2", createSwatch("#b2fbe4").toHexString()],
+  ["3", createSwatch("#00ffb8").toHexString()],
+  ["4", createSwatch("#119f72").toHexString()],
+  ["5", createSwatch("#1E4C3F").toHexString()],
+  // Gray.
+  ["6", createSwatch("#EAF0EE").toHexString()],
+  ["7", createSwatch("#b4c5c0").toHexString()],
+  ["8", createSwatch("#8DA79F").toHexString()],
+  ["9", createSwatch("#5c716b").toHexString()],
+  ["10", createSwatch("#40504C").toHexString()]
+]);
+
+const defaultCompositions = new Map([
+  ["1", { baseId: "5", contentId: "3" }],
+  ["2", { baseId: "3", contentId: "5" }],
+  ["3", { baseId: "2", contentId: "5" }],
+  ["4", { baseId: "10", contentId: "2" }],
+  ["5", { baseId: "6", contentId: "9" }]
+]);
+
+export const convertStateToQuery = (swatches, compositions) => {
+  const swatchFlat = [...swatches.values()];
+  const swatchKeys = [...swatches.keys()];
+  const compFlat = [...compositions.values()].map(({ baseId, contentId }) => [
+    swatchKeys.indexOf(baseId),
+    swatchKeys.indexOf(contentId)
+  ]);
+
+  return qs.stringify({ s: swatchFlat, c: compFlat }, { addQueryPrefix: true });
+};
+
+export const convertStateFromQuery = search => {
+  const { s: swatches = [], c: compositions = [] } = qs.parse(search, { ignoreQueryPrefix: true });
+  const swatchMap = new Map(swatches.map((value, index) => [`${index}`, value]));
+  const compMap = new Map(
+    compositions.map(([baseId, contentId], index) => [`${index}`, { baseId, contentId }])
+  );
+  const hasUserConfig = swatchMap.size || compMap.size;
+
+  return {
+    swatches: hasUserConfig ? swatchMap || [] : defaultSwatches,
+    compositions: hasUserConfig ? compMap || [] : defaultCompositions
+  };
+};

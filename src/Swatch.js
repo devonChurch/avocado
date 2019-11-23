@@ -247,6 +247,10 @@ export const AddButton = styled.button`
   cursor: pointer;
   display: block;
   height: 100%;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
   transition-duration: ${SPEED_500}ms;
   transition-property: box-shadow, background, opacity, transform, width, height;
   width: 100%;

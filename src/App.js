@@ -1,11 +1,12 @@
 import "normalize.css";
 import "drag-drop-touch";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
+import { Header } from "./Header";
 import {
   SWATCH_WIDTH,
   BLACK,
@@ -13,7 +14,9 @@ import {
   SPEED_500,
   WHITE,
   findColorComplementFromSwatches,
-  createSwatch
+  createSwatch,
+  convertStateToQuery,
+  convertStateFromQuery
 } from "./utils";
 
 const GlobalStyle = createGlobalStyle`
@@ -91,22 +94,7 @@ const App = () => {
   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** SWATCHES:   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-  const [swatches, setSwatches] = useState(
-    new Map([
-      // Green.
-      ["1", createSwatch("#E1FAF3").toHexString()],
-      ["2", createSwatch("#b2fbe4").toHexString()],
-      ["3", createSwatch("#00ffb8").toHexString()],
-      ["4", createSwatch("#119f72").toHexString()],
-      ["5", createSwatch("#1E4C3F").toHexString()],
-      // Gray.
-      ["6", createSwatch("#EAF0EE").toHexString()],
-      ["7", createSwatch("#b4c5c0").toHexString()],
-      ["8", createSwatch("#8DA79F").toHexString()],
-      ["9", createSwatch("#5c716b").toHexString()],
-      ["10", createSwatch("#40504C").toHexString()]
-    ])
-  );
+  const [swatches, setSwatches] = useState([]);
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -172,15 +160,7 @@ const App = () => {
   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** COMPOSITIONS:  ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-  const [compositions, setCompositions] = useState(
-    new Map([
-      ["1", { baseId: "5", contentId: "3" }],
-      ["2", { baseId: "3", contentId: "5" }],
-      ["3", { baseId: "2", contentId: "5" }],
-      ["4", { baseId: "10", contentId: "2" }],
-      ["5", { baseId: "6", contentId: "9" }]
-    ])
-  );
+  const [compositions, setCompositions] = useState([]);
 
   const [activeCompositionId, setActiveCompositionId] = useState(null);
   const removeActiveCompositionId = () => setActiveCompositionId(null);
@@ -227,9 +207,25 @@ const App = () => {
     [compositions]
   );
 
+  useEffect(() => {
+    const { swatches, compositions } = convertStateFromQuery(window.location.search);
+
+    setSwatches(swatches);
+    setCompositions(compositions);
+  }, []);
+
+  useEffect(() => {
+    const search = convertStateToQuery(swatches, compositions);
+    const { protocol, host, pathname } = window.location;
+    const url = `${protocol}//${host}${pathname}${search}`;
+
+    window.history.replaceState({}, "", url);
+  }, [swatches, compositions]);
+
   return (
     <>
       <GlobalStyle />
+      <Header />
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([id, hex], swatchIndex) => (
           <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
