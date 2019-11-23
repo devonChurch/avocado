@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
+import { faTrashAlt, faTasks } from "@fortawesome/free-solid-svg-icons";
 import { faGithubAlt } from "@fortawesome/free-brands-svg-icons";
 import {
   BLACK,
@@ -47,17 +47,15 @@ const ButtonHeader = styled.header`
   justify-content: space-between;
 `;
 
-export const Header = memo(() => {
-  return (
-    <ButtonHeader>
-      <Button hex={GRAY_300} as="a" href="https://github.com/devonChurch/avocado">
-        <FontAwesomeIcon icon={faGithubAlt} size="1x" />
-        <span>Github</span>
-      </Button>
-      <Button hex={GRAY_300}>
-        <FontAwesomeIcon icon={faTrashAlt} size="1x" />
-        <span>Delete</span>
-      </Button>
-    </ButtonHeader>
-  );
-});
+export const Header = memo(({ isDeleting, handleDeleteToggle }) => (
+  <ButtonHeader>
+    <Button hex={GRAY_300} as="a" href="https://github.com/devonChurch/avocado">
+      <FontAwesomeIcon icon={faGithubAlt} size="1x" />
+      <span>Github</span>
+    </Button>
+    <Button hex={GRAY_300} onClick={handleDeleteToggle}>
+      <FontAwesomeIcon icon={isDeleting ? faTasks : faTrashAlt} size="1x" />
+      <span>{isDeleting ? "Edit" : "Delete"}</span>
+    </Button>
+  </ButtonHeader>
+));

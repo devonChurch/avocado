@@ -36,6 +36,16 @@ const GlobalStyle = createGlobalStyle`
     display: grid;
     grid-gap: ${SPACE_600}px;
   }
+
+  @keyframes delete {
+  from {
+    transform: rotate(-$offset);
+  }
+
+  to {
+    transform: rotate($offset);
+  }
+}
 `;
 
 const createSwatchKey = () => nanoid();
@@ -207,6 +217,10 @@ const App = () => {
     [compositions]
   );
 
+  /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** QUERY STRING:  ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+
   useEffect(() => {
     const { swatches, compositions } = convertStateFromQuery(window.location.search);
 
@@ -222,16 +236,29 @@ const App = () => {
     window.history.replaceState({}, "", url);
   }, [swatches, compositions]);
 
+  /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** DELETE:  ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  const handleDeleteToggle = () => setIsDeleting(!isDeleting);
+
   return (
     <>
       <GlobalStyle />
-      <Header />
+      <Header {...{ isDeleting, handleDeleteToggle }} />
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([id, hex], swatchIndex) => (
           <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
             <UserSwatch
               key={id}
-              {...{ id, hex, isUserDragging, ...setSwatchAppearanceAgainstCompositionTarget(id) }}
+              {...{
+                id,
+                hex,
+                isUserDragging,
+                isDeleting,
+                ...setSwatchAppearanceAgainstCompositionTarget(id)
+              }}
               handleChange={updateUserSwatch}
               handleDragStart={setDragStartId}
               handleDragOver={setDragOverId}
@@ -264,6 +291,7 @@ const App = () => {
                 dragStartId,
                 dragHex,
                 isUserDragging,
+                isDeleting,
                 setActiveCompositionId,
                 removeActiveCompositionId
               }}

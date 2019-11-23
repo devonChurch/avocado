@@ -1,4 +1,4 @@
-import { css } from "styled-components";
+import { css, keyframes } from "styled-components";
 import tinyColor from "tinycolor2";
 import qs from "qs";
 
@@ -143,3 +143,19 @@ export const convertStateFromQuery = search => {
     compositions: hasUserConfig ? compMap || [] : defaultCompositions
   };
 };
+
+export const deleteKeyframes = keyframes`
+  from {
+    transform: rotate(-1deg);
+  }
+
+  to {
+    transform: rotate(1deg);
+  }
+`;
+
+export const deleteAnimation = css`
+  transform-origin: right top;
+  animation: 0.1s infinite alternate ${deleteKeyframes};
+  animation-timing-function: ease-in-out;
+`;

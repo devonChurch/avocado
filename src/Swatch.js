@@ -29,7 +29,8 @@ import {
   createFocusStateWithShadow,
   checkHasLowLuminance,
   resetList,
-  positionAbsolute
+  positionAbsolute,
+  deleteAnimation
 } from "./utils";
 
 const SwatchList = styled.ul`
@@ -53,7 +54,7 @@ const UserItem = styled.div`
   transition-duration: ${SPEED_700}ms, ${SPEED_500}ms, ${SPEED_700}ms, ${SPEED_700}ms;
   transition-property: background, box-shadow, transform, border;
 
-  ${({ hex, isUserDragging, isDragged, isAboutToDrag, shouldSwatchRegress }) => {
+  ${({ hex, isUserDragging, isDragged, isAboutToDrag, shouldSwatchRegress, isDeleting }) => {
     let styles = "";
 
     /**
@@ -76,13 +77,13 @@ const UserItem = styled.div`
       `;
     }
 
-    if (isDragged || isUserDragging || isAboutToDrag || shouldSwatchRegress) {
+    if (isDragged || isUserDragging || isAboutToDrag || shouldSwatchRegress || isDeleting) {
       styles += `
         border-radius: ${BORDER_RADIUS}px;
       `;
     }
 
-    if (isUserDragging) {
+    if (isUserDragging || isDeleting) {
       styles += `
         transform: scale(${SCALE_300});
       `;
@@ -183,6 +184,8 @@ const DragHitBox = styled.li`
     `}
 
   ${({ shouldSwatchPronounce }) => shouldSwatchPronounce && swatchActiveState}
+
+  ${({ isDeleting }) => isDeleting && deleteAnimation}
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
@@ -295,6 +298,7 @@ export const UserSwatch = memo(
     handleDragEnd,
     handleDrop,
     isUserDragging,
+    isDeleting,
     createReorderTransform,
     shouldSwatchPronounce,
     shouldSwatchRegress
@@ -320,7 +324,14 @@ export const UserSwatch = memo(
 
     return (
       <DragHitBox
-        {...{ isDragged, isUserDragging, hex, shouldSwatchPronounce, shouldSwatchRegress }}
+        {...{
+          isDragged,
+          isUserDragging,
+          hex,
+          shouldSwatchPronounce,
+          shouldSwatchRegress,
+          isDeleting
+        }}
         key={`${id}_DragHitBox`}
         draggable
         ref={swatchRef}
@@ -374,7 +385,7 @@ export const UserSwatch = memo(
         >
           <UserItem
             key={`${id}_UserItem`}
-            {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress }}
+            {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress, isDeleting }}
           />
           <Input
             key={`${id}_Input`}

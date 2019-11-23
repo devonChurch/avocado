@@ -31,7 +31,8 @@ import {
   createSwatch,
   checkHasLowLuminance,
   resetList,
-  positionAbsolute
+  positionAbsolute,
+  deleteAnimation
 } from "./utils";
 import { AppendSwatch, AddItem, AddButton } from "./Swatch";
 
@@ -100,6 +101,8 @@ const UserItem = styled.div`
       pointer-events: none;
       /* transform: scale(${SCALE_300}); */
     `}
+
+  ${({ isDeleting }) => isDeleting && deleteAnimation}
 `;
 
 const Examples = styled.div`
@@ -291,6 +294,7 @@ export const UserComposition = memo(
     contentHex,
     dragHex,
     isUserDragging,
+    isDeleting,
     handleDrop,
     setActiveCompositionId,
     removeActiveCompositionId
@@ -301,7 +305,7 @@ export const UserComposition = memo(
     return (
       <ItemWrapper>
         <UserItem
-          {...{ isUserDragging }}
+          {...{ isUserDragging, isDeleting }}
           onMouseEnter={() => setActiveCompositionId(compId)}
           onMouseLeave={removeActiveCompositionId}
         >
