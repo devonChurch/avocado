@@ -1,7 +1,7 @@
 import "normalize.css";
 import "drag-drop-touch";
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { TransitionGroup, CSSTransition } from "react-transition-group";
+import { TransitionGroup, CSSTransition, Transition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
@@ -12,6 +12,7 @@ import {
   BLACK,
   SPACE_600,
   SPEED_500,
+  SPEED_700,
   WHITE,
   findColorComplementFromSwatches,
   createSwatch,
@@ -36,16 +37,6 @@ const GlobalStyle = createGlobalStyle`
     display: grid;
     grid-gap: ${SPACE_600}px;
   }
-
-  @keyframes delete {
-  from {
-    transform: rotate(-$offset);
-  }
-
-  to {
-    transform: rotate($offset);
-  }
-}
 `;
 
 const createSwatchKey = () => nanoid();
@@ -273,15 +264,23 @@ const App = () => {
             />
           </CSSTransition>
         ))}
-        <AppendSwatch
-          {...{ dragHex }}
-          handleClick={appendLastListedSwatch}
-          handleDrop={appendDraggedSwatch}
-        />
+        <>
+          {/**
+           * Use a <Fragment /> to protect the "append" <CSSTransitions /> from
+           * absorbing the parent <TransitionGroup />.
+           */}
+          <CSSTransition unmountOnExit in={!isDeleting} timeout={SPEED_700} classNames="addItem">
+            <AppendSwatch
+              {...{ dragHex }}
+              handleClick={appendLastListedSwatch}
+              handleDrop={appendDraggedSwatch}
+            />
+          </CSSTransition>
+        </>
       </TransitionGroup>
       <TransitionGroup component={Compositions}>
         {[...compositions].map(([compId, { baseId, contentId }]) => (
-          <CSSTransition key={compId} timeout={5000} classNames="composition">
+          <CSSTransition key={compId} timeout={SPEED_700} classNames="composition">
             <UserComposition
               key={compId}
               {...{
@@ -301,11 +300,15 @@ const App = () => {
             />
           </CSSTransition>
         ))}
-        <AppendComposition
-          {...{ dragStartId, dragHex, isUserDragging }}
-          handleClick={appendLastListedComposition}
-          handleDrop={appendCompositionFromDraggedSwatch}
-        />
+        <>
+          <CSSTransition unmountOnExit in={!isDeleting} timeout={SPEED_700} classNames="addItem">
+            <AppendComposition
+              {...{ dragStartId, dragHex, isUserDragging }}
+              handleClick={appendLastListedComposition}
+              handleDrop={appendCompositionFromDraggedSwatch}
+            />
+          </CSSTransition>
+        </>
       </TransitionGroup>
     </>
   );

@@ -102,7 +102,7 @@ const UserItem = styled.div`
       /* transform: scale(${SCALE_300}); */
     `}
 
-  ${({ isDeleting }) => isDeleting && deleteAnimation}
+  ${({ isDeleting }) => isDeleting && deleteAnimation(0.5)}
 `;
 
 const Examples = styled.div`
@@ -306,8 +306,8 @@ export const UserComposition = memo(
       <ItemWrapper>
         <UserItem
           {...{ isUserDragging, isDeleting }}
-          onMouseEnter={() => setActiveCompositionId(compId)}
-          onMouseLeave={removeActiveCompositionId}
+          onMouseEnter={isDeleting ? undefined : () => setActiveCompositionId(compId)}
+          onMouseLeave={isDeleting ? undefined : removeActiveCompositionId}
         >
           <Examples {...{ baseHex, contentHex }}>
             <SmallText>The quick brown fox,</SmallText>
@@ -363,6 +363,7 @@ export const AppendComposition = memo(
     const [isAddTargeted, setIsAddTargeted] = useState(false);
     const [isContentTargeted, setIsContentTargeted] = useState(false);
     const [isBaseTargeted, setIsBaseTargeted] = useState(false);
+
     return (
       <AddItem>
         <DropAreas {...{ isUserDragging }}>

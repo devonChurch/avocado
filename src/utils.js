@@ -77,6 +77,7 @@ const createColorCompanion = (createUpdate, alpha = 1) => hex => {
 export const createOffsetColor = createColorCompanion(updateLuminanceStatic(0.2, 0.8));
 export const createTargetColor = hex => hex;
 export const createFocusColor = createColorCompanion(updateLuminanceStatic(0.3, 0.7), 0.5);
+export const createActiveColor = createColorCompanion(updateLuminanceStatic(0.5, 0.5), 1);
 
 export const createFocusborder = hex => `0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
 export const createFocusState = hex => createFocusborder(hex);
@@ -144,18 +145,18 @@ export const convertStateFromQuery = search => {
   };
 };
 
-export const deleteKeyframes = keyframes`
+export const deleteKeyframes = offset => keyframes`
   from {
-    transform: rotate(-1deg);
+    transform: rotate(-${offset}deg);
   }
 
   to {
-    transform: rotate(1deg);
+    transform: rotate(${offset}deg);
   }
 `;
 
-export const deleteAnimation = css`
+export const deleteAnimation = offset => css`
   transform-origin: right top;
-  animation: 0.1s infinite alternate ${deleteKeyframes};
+  animation: 0.1s infinite alternate ${deleteKeyframes(offset)};
   animation-timing-function: ease-in-out;
 `;

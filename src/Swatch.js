@@ -26,6 +26,7 @@ import {
   createOffsetColor,
   createTargetColor,
   createFocusState,
+  createActiveColor,
   createFocusStateWithShadow,
   checkHasLowLuminance,
   resetList,
@@ -185,7 +186,7 @@ const DragHitBox = styled.li`
 
   ${({ shouldSwatchPronounce }) => shouldSwatchPronounce && swatchActiveState}
 
-  ${({ isDeleting }) => isDeleting && deleteAnimation}
+  ${({ isDeleting }) => isDeleting && deleteAnimation(2)}
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
@@ -240,6 +241,21 @@ export const AddItem = styled.li`
   display: grid;
   padding: ${SPACE_400}px;
   position: relative;
+  transition-duration: ${SPEED_500}ms;
+  transition-property: opacity, transform;
+
+  /** React CSSTransition animation property when the add <button /> is in NOT ACTIVE. */
+  &.addItem-enter,
+  &.addItem-exit {
+    opacity: 0;
+    transform: scale(${SCALE_300});
+  }
+
+  /** React CSSTransition animation property when the add <button /> is in IS ACTIVE. */
+  &.addItem-enter-active {
+    opacity: 1;
+    transform: scale(${SCALE_500});
+  }
 `;
 
 export const AddButton = styled.button`
@@ -276,6 +292,10 @@ export const AddButton = styled.button`
   &:focus,
   &:hover {
     box-shadow: ${({ hex }) => createFocusStateWithShadow(hex)};
+  }
+
+  &:active {
+    background: ${({ hex }) => createActiveColor(hex)};
   }
 `;
 
@@ -333,7 +353,7 @@ export const UserSwatch = memo(
           isDeleting
         }}
         key={`${id}_DragHitBox`}
-        draggable
+        draggable={!isDeleting}
         ref={swatchRef}
         onDragStart={event => {
           setIsAboutToDrag(false);
@@ -375,8 +395,8 @@ export const UserSwatch = memo(
            */
           event.preventDefault();
         }}
-        onMouseDown={() => setIsAboutToDrag(true)}
-        onMouseUp={() => setIsAboutToDrag(false)}
+        onMouseDown={isDeleting ? undefined : () => setIsAboutToDrag(true)}
+        onMouseUp={isDeleting ? undefined : () => setIsAboutToDrag(false)}
       >
         <ReorderTransformation
           {...{ isDragged, isUserDragging }}
@@ -387,16 +407,18 @@ export const UserSwatch = memo(
             key={`${id}_UserItem`}
             {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress, isDeleting }}
           />
-          <Input
-            key={`${id}_Input`}
-            type="color"
-            value={inputValue}
-            onChange={event => {
-              const { value } = event.target;
-              setInputValue(value);
-              debouncedInputHandler(value);
-            }}
-          />
+          {!isDeleting && (
+            <Input
+              key={`${id}_Input`}
+              type="color"
+              value={inputValue}
+              onChange={event => {
+                const { value } = event.target;
+                setInputValue(value);
+                debouncedInputHandler(value);
+              }}
+            />
+          )}
         </ReorderTransformation>
       </DragHitBox>
     );
@@ -405,6 +427,7 @@ export const UserSwatch = memo(
 
 export const AppendSwatch = memo(({ dragHex, handleClick, handleDrop }) => {
   const [isTargeted, setIsTargeted] = useState(false);
+
   return (
     <AddItem>
       <AddButton
