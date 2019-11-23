@@ -1,7 +1,7 @@
 import "normalize.css";
 import "drag-drop-touch";
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { TransitionGroup, CSSTransition, Transition } from "react-transition-group";
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";

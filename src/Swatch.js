@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect, useRef, useCallback } from "react";
+import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
 import debounce from "lodash.debounce";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,7 +21,9 @@ import {
   SCALE_600,
   SPACE_300,
   SPACE_400,
+  SPACE_500,
   SPACE_600,
+  SPACE_700,
   LUMINANCE_SHADOW_500,
   createSwatch,
   createOffsetColor,
@@ -51,7 +54,7 @@ const SwatchList = styled.ul`
 const UserItem = styled.div`
   ${positionAbsolute}
   background: ${({ hex }) => hex};
-  pointer-events: none;
+  /* pointer-events: none; */
   transition-duration: ${SPEED_700}ms, ${SPEED_500}ms, ${SPEED_700}ms, ${SPEED_700}ms;
   transition-property: background, box-shadow, transform, border;
 
@@ -305,6 +308,28 @@ const Input = styled.input`
   opacity: 0;
 `;
 
+export const DeleteButton = styled(AddButton)`
+  height: ${SPACE_700}px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: ${SPACE_700}px;
+
+  /** React CSSTransition animation property when the add <button /> is in NOT ACTIVE. */
+  &.deleteItem-enter,
+  &.deleteItem-exit {
+    opacity: 0;
+    transform: translate(${SPACE_500}px, -${SPACE_500}px) scale(${SCALE_300});
+  }
+
+  /** React CSSTransition animation property when the add <button /> is in IS ACTIVE. */
+  &.deleteItem-enter-active,
+  &.deleteItem-enter-done {
+    opacity: 1;
+    transform: translate(${SPACE_500}px, -${SPACE_500}px) scale(${SCALE_500});
+  }
+`;
+
 export const Swatches = SwatchList;
 
 export const UserSwatch = memo(
@@ -406,7 +431,18 @@ export const UserSwatch = memo(
           <UserItem
             key={`${id}_UserItem`}
             {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress, isDeleting }}
-          />
+          >
+            <CSSTransition
+              unmountOnExit
+              in={isDeleting}
+              timeout={SPEED_700}
+              classNames="deleteItem"
+            >
+              <DeleteButton hex={GRAY_300} onClick={() => console.log("delete")}>
+                <FontAwesomeIcon icon={faPlus} size="1x" />
+              </DeleteButton>
+            </CSSTransition>
+          </UserItem>
           {!isDeleting && (
             <Input
               key={`${id}_Input`}

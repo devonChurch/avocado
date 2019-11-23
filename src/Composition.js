@@ -1,4 +1,5 @@
 import React, { memo, useEffect, useRef, useState } from "react";
+import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
 import tinyColor from "tinycolor2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -34,7 +35,7 @@ import {
   positionAbsolute,
   deleteAnimation
 } from "./utils";
-import { AppendSwatch, AddItem, AddButton } from "./Swatch";
+import { AppendSwatch, AddItem, AddButton, DeleteButton } from "./Swatch";
 
 const CompList = styled.ul`
   ${resetList}
@@ -316,6 +317,11 @@ export const UserComposition = memo(
             <Dividers />
           </Examples>
           <Results {...{ baseHex, contentHex }} />
+          <CSSTransition unmountOnExit in={isDeleting} timeout={SPEED_700} classNames="deleteItem">
+            <DeleteButton hex={GRAY_300} onClick={() => console.log("delete")}>
+              <FontAwesomeIcon icon={faPlus} size="1x" />
+            </DeleteButton>
+          </CSSTransition>
         </UserItem>
         <DropAreas {...{ isUserDragging }}>
           <AddButton
