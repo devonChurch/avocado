@@ -296,6 +296,7 @@ export const UserComposition = memo(
     dragHex,
     isUserDragging,
     isDeleting,
+    handleDelete,
     handleDrop,
     setActiveCompositionId,
     removeActiveCompositionId
@@ -318,7 +319,7 @@ export const UserComposition = memo(
           </Examples>
           <Results {...{ baseHex, contentHex }} />
           <CSSTransition unmountOnExit in={isDeleting} timeout={SPEED_700} classNames="deleteItem">
-            <DeleteButton hex={GRAY_300} onClick={() => console.log("delete")}>
+            <DeleteButton hex={GRAY_300} onClick={() => handleDelete(compId)}>
               <FontAwesomeIcon icon={faPlus} size="1x" />
             </DeleteButton>
           </CSSTransition>

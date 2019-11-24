@@ -234,28 +234,62 @@ const App = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const handleDeleteToggle = () => setIsDeleting(!isDeleting);
 
+  const deleteSwatch = useCallback(
+    swatchId => {
+      const prevSwatches = [...swatches];
+      const swatchIndex = findSwatchIndexFromId(prevSwatches, swatchId);
+      const nextSwatches = [
+        ...prevSwatches.slice(0, swatchIndex),
+        ...prevSwatches.slice(swatchIndex + 1)
+      ];
+      setSwatches(new Map(nextSwatches));
+    },
+    [swatches]
+  );
+
+  const deleteComposition = useCallback(
+    compId => {
+      const prevComps = [...compositions];
+      const compIndex = findCompositionIndexFromId(prevComps, compId);
+      const nextComps = [...prevComps.slice(0, compIndex), ...prevComps.slice(compIndex + 1)];
+      setCompositions(new Map(nextComps));
+    },
+    [compositions]
+  );
+
+  const checkIsSwatchInAnyComposition = (() => {
+    const activeSwatchIds = [...compositions.values()].reduce(
+      (acc, { baseId, contentId }) => [...acc, baseId, contentId],
+      []
+    );
+
+    return swatchId => activeSwatchIds.includes(swatchId);
+  })();
+
   return (
     <>
       <GlobalStyle />
       <Header {...{ isDeleting, handleDeleteToggle }} />
       <TransitionGroup component={Swatches}>
-        {[...swatches].map(([id, hex], swatchIndex) => (
-          <CSSTransition key={id} timeout={SPEED_500} classNames="swatch">
+        {[...swatches].map(([swatchId, hex], swatchIndex) => (
+          <CSSTransition key={swatchId} timeout={SPEED_500} classNames="swatch">
             <UserSwatch
-              key={id}
+              key={swatchId}
               {...{
-                id,
+                swatchId,
                 hex,
                 isUserDragging,
                 isDeleting,
-                ...setSwatchAppearanceAgainstCompositionTarget(id)
+                ...setSwatchAppearanceAgainstCompositionTarget(swatchId)
               }}
+              isInAnyComposition={checkIsSwatchInAnyComposition(swatchId)}
               handleChange={updateUserSwatch}
               handleDragStart={setDragStartId}
               handleDragOver={setDragOverId}
               handleDragExit={removeDragOverId}
               handleDragEnd={removeDragIds}
               handleDrop={moveSwatchToNewLocation}
+              handleDelete={deleteSwatch}
               createReorderTransform={createReorderTransformHandler(
                 dragStartId,
                 dragOverId,
@@ -297,6 +331,7 @@ const App = () => {
               baseHex={swatches.get(baseId)}
               contentHex={swatches.get(contentId)}
               handleDrop={updateComposition}
+              handleDelete={deleteComposition}
             />
           </CSSTransition>
         ))}

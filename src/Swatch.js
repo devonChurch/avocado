@@ -73,6 +73,7 @@ const UserItem = styled.div`
       styles += `
         &:after {
           ${positionAbsolute}
+          border-radius: 4px;
           box-shadow: ${LUMINANCE_SHADOW_500};
           content: "";
           display: block;
@@ -166,19 +167,20 @@ const DragHitBox = styled.li`
    */
   z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
 
-  ${({ isUserDragging }) =>
-    !isUserDragging &&
-    /**
-     * Do NOT show these interaction states on ANY swatches when the user is
-     * dragging as swatches will all be changing their `:hover` states on/off
-     * throughout the dragging process.
-     */
-    css`
-      &:focus-within,
-      &:hover {
-        ${swatchActiveState}
-      }
-    `}
+  ${({ isUserDragging, isDeleting }) =>
+    !isUserDragging ||
+    (!isDeleting &&
+      /**
+       * Do NOT show these interaction states on ANY swatches when the user is
+       * dragging as swatches will all be changing their `:hover` states on/off
+       * throughout the dragging process.
+       */
+      css`
+        &:focus-within,
+        &:hover {
+          ${swatchActiveState}
+        }
+      `)}
 
   ${({ shouldSwatchRegress }) =>
     shouldSwatchRegress &&
@@ -189,7 +191,7 @@ const DragHitBox = styled.li`
 
   ${({ shouldSwatchPronounce }) => shouldSwatchPronounce && swatchActiveState}
 
-  ${({ isDeleting }) => isDeleting && deleteAnimation(2)}
+  ${({ isDeleting, isInAnyComposition }) => isDeleting && !isInAnyComposition && deleteAnimation(2)}
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
@@ -334,7 +336,7 @@ export const Swatches = SwatchList;
 
 export const UserSwatch = memo(
   ({
-    id,
+    swatchId,
     hex,
     handleChange,
     handleDragStart,
@@ -344,6 +346,8 @@ export const UserSwatch = memo(
     handleDrop,
     isUserDragging,
     isDeleting,
+    handleDelete,
+    isInAnyComposition,
     createReorderTransform,
     shouldSwatchPronounce,
     shouldSwatchRegress
@@ -363,7 +367,7 @@ export const UserSwatch = memo(
      * experience.
      */
     const [inputValue, setInputValue] = useState(hex);
-    const debouncedInputHandler = debounce(value => handleChange(id, value), 100);
+    const debouncedInputHandler = debounce(value => handleChange(swatchId, value), 100);
 
     const swatchRef = useRef(null);
 
@@ -375,9 +379,9 @@ export const UserSwatch = memo(
           hex,
           shouldSwatchPronounce,
           shouldSwatchRegress,
-          isDeleting
+          isDeleting,
+          isInAnyComposition
         }}
-        key={`${id}_DragHitBox`}
         draggable={!isDeleting}
         ref={swatchRef}
         onDragStart={event => {
@@ -396,14 +400,14 @@ export const UserSwatch = memo(
           event.dataTransfer.setDragImage(swatchRef.current, offset, offset);
 
           setIsDragged(true);
-          handleDragStart(id);
+          handleDragStart(swatchId);
         }}
         onDragEnd={() => {
           setIsDragged(false);
           handleDragEnd();
         }}
         onDragOver={event => {
-          handleDragOver(id);
+          handleDragOver(swatchId);
           /*
            * MDN suggests applying `preventDefault` on specific DnD event hooks.
            * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
@@ -413,7 +417,7 @@ export const UserSwatch = memo(
         onDragLeave={handleDragExit}
         onDrop={event => {
           setIsDragged(false);
-          handleDrop(id);
+          handleDrop(swatchId);
           /*
            * MDN suggests applying `preventDefault` on specific DnD event hooks.
            * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API#Handle_the_drop_effect
@@ -425,27 +429,24 @@ export const UserSwatch = memo(
       >
         <ReorderTransformation
           {...{ isDragged, isUserDragging }}
-          key={`${id}_ReorderTransformation`}
           reorderTransform={createReorderTransform(swatchRef.current)}
         >
           <UserItem
-            key={`${id}_UserItem`}
             {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress, isDeleting }}
           >
             <CSSTransition
               unmountOnExit
-              in={isDeleting}
+              in={isDeleting && !isInAnyComposition}
               timeout={SPEED_700}
               classNames="deleteItem"
             >
-              <DeleteButton hex={GRAY_300} onClick={() => console.log("delete")}>
+              <DeleteButton hex={GRAY_300} onClick={() => handleDelete(swatchId)}>
                 <FontAwesomeIcon icon={faPlus} size="1x" />
               </DeleteButton>
             </CSSTransition>
           </UserItem>
           {!isDeleting && (
             <Input
-              key={`${id}_Input`}
               type="color"
               value={inputValue}
               onChange={event => {
