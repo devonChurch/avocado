@@ -177,20 +177,21 @@ const App = () => {
     return { shouldSwatchPronounce, shouldSwatchRegress };
   };
 
-  const appendComposition = swatchIds => {
-    setCompositions(new Map([...compositions, [createCompositionKey(), swatchIds]]));
+  const appendComposition = ({ baseId, contentId } = {}) => {
+    const compositionIds = {
+      baseId: baseId || findColorComplementFromSwatches(contentId, swatches),
+      contentId: contentId || findColorComplementFromSwatches(baseId, swatches)
+    };
+    setCompositions(new Map([...compositions, [createCompositionKey(), compositionIds]]));
   };
 
   const appendLastListedComposition = () => {
-    const [, { baseId, contentId }] = [...compositions].pop() || [];
-    appendComposition({ baseId, contentId });
+    const [, compositionIds] = [...compositions].pop() || [];
+    appendComposition(compositionIds);
   };
 
-  const appendCompositionFromDraggedSwatch = ({ baseId, contentId }) => {
-    appendComposition({
-      baseId: baseId || findColorComplementFromSwatches(contentId, swatches),
-      contentId: contentId || findColorComplementFromSwatches(baseId, swatches)
-    });
+  const appendCompositionFromDraggedSwatch = compositionIds => {
+    appendComposition(compositionIds);
     removeDragIds();
   };
 
@@ -257,6 +258,9 @@ const App = () => {
     [compositions]
   );
 
+  const hasEnoughSwatchesToDelete = swatches.size > 2;
+  const hasEnoughCompositionsToDelete = compositions.size > 1;
+
   const checkIsSwatchInAnyComposition = (() => {
     const activeSwatchIds = [...compositions.values()].reduce(
       (acc, { baseId, contentId }) => [...acc, baseId, contentId],
@@ -282,7 +286,9 @@ const App = () => {
                 isDeleting,
                 ...setSwatchAppearanceAgainstCompositionTarget(swatchId)
               }}
-              isInAnyComposition={checkIsSwatchInAnyComposition(swatchId)}
+              hasCapacityToDelete={
+                hasEnoughSwatchesToDelete && !checkIsSwatchInAnyComposition(swatchId)
+              }
               handleChange={updateUserSwatch}
               handleDragStart={setDragStartId}
               handleDragOver={setDragOverId}
@@ -302,14 +308,22 @@ const App = () => {
           {/**
            * Use a <Fragment /> to protect the "append" <CSSTransitions /> from
            * absorbing the parent <TransitionGroup />.
-           */}
-          <CSSTransition unmountOnExit in={!isDeleting} timeout={SPEED_700} classNames="addItem">
-            <AppendSwatch
-              {...{ dragHex }}
-              handleClick={appendLastListedSwatch}
-              handleDrop={appendDraggedSwatch}
-            />
-          </CSSTransition>
+           */
+          isDeleting ? (
+            /**
+             * Add in a placeholder so that the missing space does NOT cause
+             * aggressive reflow.
+             */
+            <div />
+          ) : (
+            <CSSTransition unmountOnExit in={!isDeleting} timeout={SPEED_700} classNames="addItem">
+              <AppendSwatch
+                {...{ dragHex }}
+                handleClick={appendLastListedSwatch}
+                handleDrop={appendDraggedSwatch}
+              />
+            </CSSTransition>
+          )}
         </>
       </TransitionGroup>
       <TransitionGroup component={Compositions}>
@@ -328,6 +342,7 @@ const App = () => {
                 setActiveCompositionId,
                 removeActiveCompositionId
               }}
+              hasCapacityToDelete={hasEnoughCompositionsToDelete}
               baseHex={swatches.get(baseId)}
               contentHex={swatches.get(contentId)}
               handleDrop={updateComposition}
@@ -336,13 +351,17 @@ const App = () => {
           </CSSTransition>
         ))}
         <>
-          <CSSTransition unmountOnExit in={!isDeleting} timeout={SPEED_700} classNames="addItem">
-            <AppendComposition
-              {...{ dragStartId, dragHex, isUserDragging }}
-              handleClick={appendLastListedComposition}
-              handleDrop={appendCompositionFromDraggedSwatch}
-            />
-          </CSSTransition>
+          {isDeleting ? (
+            <div />
+          ) : (
+            <CSSTransition unmountOnExit in={!isDeleting} timeout={SPEED_700} classNames="addItem">
+              <AppendComposition
+                {...{ dragStartId, dragHex, isUserDragging }}
+                handleClick={appendLastListedComposition}
+                handleDrop={appendCompositionFromDraggedSwatch}
+              />
+            </CSSTransition>
+          )}
         </>
       </TransitionGroup>
     </>

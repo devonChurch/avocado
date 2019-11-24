@@ -103,7 +103,8 @@ const UserItem = styled.div`
       /* transform: scale(${SCALE_300}); */
     `}
 
-  ${({ isDeleting }) => isDeleting && deleteAnimation(0.5)}
+  ${({ isDeleting, hasCapacityToDelete }) =>
+    isDeleting && hasCapacityToDelete && deleteAnimation(0.5)}
 `;
 
 const Examples = styled.div`
@@ -296,6 +297,7 @@ export const UserComposition = memo(
     dragHex,
     isUserDragging,
     isDeleting,
+    hasCapacityToDelete,
     handleDelete,
     handleDrop,
     setActiveCompositionId,
@@ -307,7 +309,7 @@ export const UserComposition = memo(
     return (
       <ItemWrapper>
         <UserItem
-          {...{ isUserDragging, isDeleting }}
+          {...{ isUserDragging, isDeleting, hasCapacityToDelete }}
           onMouseEnter={isDeleting ? undefined : () => setActiveCompositionId(compId)}
           onMouseLeave={isDeleting ? undefined : removeActiveCompositionId}
         >
@@ -318,7 +320,12 @@ export const UserComposition = memo(
             <Dividers />
           </Examples>
           <Results {...{ baseHex, contentHex }} />
-          <CSSTransition unmountOnExit in={isDeleting} timeout={SPEED_700} classNames="deleteItem">
+          <CSSTransition
+            unmountOnExit
+            in={isDeleting && hasCapacityToDelete}
+            timeout={SPEED_700}
+            classNames="deleteItem"
+          >
             <DeleteButton hex={GRAY_300} onClick={() => handleDelete(compId)}>
               <FontAwesomeIcon icon={faPlus} size="1x" />
             </DeleteButton>

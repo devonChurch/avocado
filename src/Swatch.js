@@ -168,19 +168,19 @@ const DragHitBox = styled.li`
   z-index: ${({ isDragged }) => (isDragged ? "0" : "1")};
 
   ${({ isUserDragging, isDeleting }) =>
-    !isUserDragging ||
-    (!isDeleting &&
-      /**
-       * Do NOT show these interaction states on ANY swatches when the user is
-       * dragging as swatches will all be changing their `:hover` states on/off
-       * throughout the dragging process.
-       */
-      css`
-        &:focus-within,
-        &:hover {
-          ${swatchActiveState}
-        }
-      `)}
+    !isUserDragging &&
+    !isDeleting &&
+    /**
+     * Do NOT show these interaction states on ANY swatches when the user is
+     * dragging as swatches will all be changing their `:hover` states on/off
+     * throughout the dragging process.
+     */
+    css`
+      &:focus-within,
+      &:hover {
+        ${swatchActiveState}
+      }
+    `}
 
   ${({ shouldSwatchRegress }) =>
     shouldSwatchRegress &&
@@ -191,7 +191,8 @@ const DragHitBox = styled.li`
 
   ${({ shouldSwatchPronounce }) => shouldSwatchPronounce && swatchActiveState}
 
-  ${({ isDeleting, isInAnyComposition }) => isDeleting && !isInAnyComposition && deleteAnimation(2)}
+  ${({ isDeleting, hasCapacityToDelete }) =>
+    isDeleting && hasCapacityToDelete && deleteAnimation(2)}
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
@@ -347,7 +348,7 @@ export const UserSwatch = memo(
     isUserDragging,
     isDeleting,
     handleDelete,
-    isInAnyComposition,
+    hasCapacityToDelete,
     createReorderTransform,
     shouldSwatchPronounce,
     shouldSwatchRegress
@@ -380,7 +381,7 @@ export const UserSwatch = memo(
           shouldSwatchPronounce,
           shouldSwatchRegress,
           isDeleting,
-          isInAnyComposition
+          hasCapacityToDelete
         }}
         draggable={!isDeleting}
         ref={swatchRef}
@@ -436,7 +437,7 @@ export const UserSwatch = memo(
           >
             <CSSTransition
               unmountOnExit
-              in={isDeleting && !isInAnyComposition}
+              in={isDeleting && hasCapacityToDelete}
               timeout={SPEED_700}
               classNames="deleteItem"
             >
