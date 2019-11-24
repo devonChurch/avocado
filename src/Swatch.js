@@ -196,14 +196,15 @@ const DragHitBox = styled.li`
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.swatch-enter,
-  &.swatch-exit {
+  &.swatch-exit,
+  &.swatch-exit-active {
     opacity: 0;
     transform: scale(0);
   }
 
   /** React CSSTransition animation property when an item is in its ACTIVE state. */
   &.swatch-enter-active,
-  &.swatch-exit-active {
+  &.swatch-enter-done {
     opacity: 1;
     transform: scale(${SCALE_500});
   }

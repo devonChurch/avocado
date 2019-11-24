@@ -261,14 +261,15 @@ const ItemWrapper = styled.li`
 
   /** React CSSTransition animation property when an item is in its DORMANT state. */
   &.composition-enter,
-  &.composition-exit {
+  &.composition-exit,
+  &.composition-exit-active {
     opacity: 0;
     transform: scale(${SCALE_200});
   }
 
   /** React CSSTransition animation property when an item is in its ACTIVE state. */
   &.composition-enter-active,
-  &.composition-exit-active {
+  &.composition-enter-done {
     opacity: 1;
     transform: scale(${SCALE_500});
   }

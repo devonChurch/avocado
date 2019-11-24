@@ -276,7 +276,7 @@ const App = () => {
       <Header {...{ isDeleting, handleDeleteToggle }} />
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([swatchId, hex], swatchIndex) => (
-          <CSSTransition key={swatchId} timeout={SPEED_500} classNames="swatch">
+          <CSSTransition key={swatchId} timeout={SPEED_700} classNames="swatch">
             <UserSwatch
               key={swatchId}
               {...{
