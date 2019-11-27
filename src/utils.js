@@ -98,26 +98,17 @@ export const positionAbsolute = css`
 `;
 
 const defaultSwatches = new Map([
-  // Green.
-  ["1", createSwatch("#E1FAF3").toHexString()],
-  ["2", createSwatch("#b2fbe4").toHexString()],
-  ["3", createSwatch("#00ffb8").toHexString()],
-  ["4", createSwatch("#119f72").toHexString()],
-  ["5", createSwatch("#1E4C3F").toHexString()],
-  // Gray.
-  ["6", createSwatch("#EAF0EE").toHexString()],
-  ["7", createSwatch("#b4c5c0").toHexString()],
-  ["8", createSwatch("#8DA79F").toHexString()],
-  ["9", createSwatch("#5c716b").toHexString()],
-  ["10", createSwatch("#40504C").toHexString()]
+  ["1", createSwatch("rgb(150, 180, 150)").toHexString()],
+  ["2", createSwatch("rgb(246, 199, 163)").toHexString()],
+  ["3", createSwatch("rgb(240, 124, 125)").toHexString()],
+  ["4", createSwatch("rgb(218, 68, 93)").toHexString()],
+  ["5", createSwatch("rgb(38, 51, 56)").toHexString()]
 ]);
 
 const defaultCompositions = new Map([
-  ["1", { baseId: "5", contentId: "3" }],
-  ["2", { baseId: "3", contentId: "5" }],
-  ["3", { baseId: "2", contentId: "5" }],
-  ["4", { baseId: "10", contentId: "2" }],
-  ["5", { baseId: "6", contentId: "9" }]
+  ["1", { baseId: "5", contentId: "1" }],
+  ["2", { baseId: "4", contentId: "2" }],
+  ["3", { baseId: "2", contentId: "5" }]
 ]);
 
 export const convertStateToQuery = (swatches, compositions) => {
