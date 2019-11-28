@@ -98,7 +98,7 @@ export const positionAbsolute = css`
 `;
 
 const defaultSwatches = new Map([
-  ["1", createSwatch("rgb(150, 180, 150)").toHexString()],
+  ["1", createSwatch("rgb(88, 213, 255)").toHexString()],
   ["2", createSwatch("rgb(246, 199, 163)").toHexString()],
   ["3", createSwatch("rgb(240, 124, 125)").toHexString()],
   ["4", createSwatch("rgb(218, 68, 93)").toHexString()],

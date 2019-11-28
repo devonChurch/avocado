@@ -108,13 +108,23 @@ const UserItem = styled.div`
 `;
 
 const Examples = styled.div`
+  /**
+   * Targeting the "Base" and "Content" hex values via CSS variables as the
+   * performance is more optimal than re-rendering a baked in value on every change.
+   *
+   * It also fixes an issue when referencing currentColor within a linear
+   * gradient (inconsistent in browsers).
+   */
+  --baseHex: ${({ baseHex }) => baseHex};
+  --contentHex: ${({ contentHex }) => contentHex};
+
   border-radius: ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0 0;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
   grid-gap: ${SPACE_600}px;
-  background: ${({ baseHex }) => baseHex};
-  color: ${({ contentHex }) => contentHex};
+  background: var(--baseHex);
+  color: var(--contentHex);
   padding: ${SPACE_600}px;
   position: relative;
   font-family: sans-serif;
@@ -157,7 +167,7 @@ const SmallText = styled.span`
 const Divider = styled.div`
   border-radius: ${BORDER_RADIUS}px;
   height: ${({ height }) => `${height}px`};
-  background-image: linear-gradient(to right, currentColor, transparent);
+  background-image: linear-gradient(to right, var(--contentHex), transparent);
 `;
 
 export const Compositions = CompList;
