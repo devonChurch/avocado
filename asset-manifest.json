@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.js": "/avocado/static/js/main.5326c53b.chunk.js",
-    "main.js.map": "/avocado/static/js/main.5326c53b.chunk.js.map",
+    "main.js": "/avocado/static/js/main.833b3b27.chunk.js",
+    "main.js.map": "/avocado/static/js/main.833b3b27.chunk.js.map",
     "runtime~main.js": "/avocado/static/js/runtime~main.fdc3e02c.js",
     "runtime~main.js.map": "/avocado/static/js/runtime~main.fdc3e02c.js.map",
     "static/css/2.764ccc25.chunk.css": "/avocado/static/css/2.764ccc25.chunk.css",
-    "static/js/2.ceae832f.chunk.js": "/avocado/static/js/2.ceae832f.chunk.js",
-    "static/js/2.ceae832f.chunk.js.map": "/avocado/static/js/2.ceae832f.chunk.js.map",
+    "static/js/2.7f581721.chunk.js": "/avocado/static/js/2.7f581721.chunk.js",
+    "static/js/2.7f581721.chunk.js.map": "/avocado/static/js/2.7f581721.chunk.js.map",
     "index.html": "/avocado/index.html",
-    "precache-manifest.9a7bbd307012fdead88beac3419c9b90.js": "/avocado/precache-manifest.9a7bbd307012fdead88beac3419c9b90.js",
+    "precache-manifest.bea466d3b50c1513a0bea6697515e76c.js": "/avocado/precache-manifest.bea466d3b50c1513a0bea6697515e76c.js",
     "service-worker.js": "/avocado/service-worker.js",
     "static/css/2.764ccc25.chunk.css.map": "/avocado/static/css/2.764ccc25.chunk.css.map"
   }
