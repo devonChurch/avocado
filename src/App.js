@@ -99,7 +99,7 @@ const useThrottledState = (initialState, delay) => {
 
   useEffect(() => {
     const handleUpdate = newState => setState(newState);
-    throttled.current = throttle(handleUpdate, delay);
+    throttled.current = throttle(handleUpdate, delay, { trailing: false });
 
     // Once the throttler has been setup we toggle a flag to ensure that we return
     // the throttled state "updater"
