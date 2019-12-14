@@ -1,8 +1,9 @@
 import "normalize.css";
 import "drag-drop-touch";
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
+import throttle from "lodash.throttle";
 import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
@@ -91,11 +92,49 @@ const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchInde
   };
 };
 
+const useThrottledState = (initialState, delay) => {
+  const [isPrepped, setIsPrepped] = useState(false);
+  const [state, setState] = useState(initialState);
+  const throttled = useRef();
+
+  useEffect(() => {
+    const handleUpdate = newState => setState(newState);
+    throttled.current = throttle(handleUpdate, delay);
+
+    // Once the throttler has been setup we toggle a flag to ensure that we return
+    // the throttled state "updater"
+    if (!isPrepped) {
+      setIsPrepped(true);
+    }
+
+    // Destroy persistent throttle reference on unmount.
+    return () => throttled.current.cancel();
+
+    // Force the effect to ONLY run on init so as NOT to recreate the thriller
+    // setup (which would be super bad).
+  }, []);
+
+  return [
+    state,
+    // If we have NOT prepped the throttler yet then just send back the "immediate"
+    // setState reference.
+    isPrepped ? throttled.current : setState
+  ];
+};
+
 const App = () => {
   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** SWATCHES:   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-  const [swatches, setSwatches] = useState([]);
+
+  // Se swap out the "vanilla" useState hook for a custom implementation that
+  // throttles the update of the "swatches" references. The swatch state is the
+  // catalyst for performant heavy re-renders (think hundreds of hex updates as
+  // you drag the native color slider). In that regard, we throttle the amount
+  // the swatches state can be updated.
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // const [swatches, setSwatches] = useState([]);
+  const [swatches, setSwatches] = useThrottledState(new Map([]), 1000);
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
