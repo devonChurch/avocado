@@ -402,6 +402,7 @@ export const AppendComposition = memo(
             onDragLeave={() => setIsContentTargeted(false)}
             onDrop={event => {
               handleDrop({ contentId: dragStartId });
+              setIsContentTargeted(false);
               event.preventDefault();
             }}
           >
