@@ -266,16 +266,18 @@ export const AddItem = styled.li`
 `;
 
 export const AddButton = styled.button`
+  align-self: stretch;
   appearance: none;
   border: ${BORDER_WIDTH}px solid ${({ hex }) => createOffsetColor(hex)};
   border-radius: ${BORDER_RADIUS}px;
   color: ${({ hex }) => createOffsetColor(hex)};
   cursor: pointer;
   display: block;
-  height: 100%;
   font-family: sans-serif;
   font-weight: bold;
   font-size: 14px;
+  height: 100%;
+  justify-self: stretch;
   text-transform: uppercase;
   transition-duration: ${SPEED_500}ms;
   transition-property: box-shadow, background, opacity, transform, width, height;

@@ -229,8 +229,10 @@ const Level = ({ children: level }) => {
 
 const DropAreas = styled.div`
   ${positionAbsolute}
+  align-items: stretch;
   display: grid;
   grid-gap: ${SPACE_600}px;
+  justify-items: stretch;
   padding: ${SPACE_600}px;
   transition-duration: ${SPEED_500}ms;
   transition-property: opacity, transform;
@@ -297,6 +299,15 @@ const AddCompositionButton = styled(AddButton)`
         `}
 `;
 
+const AddSlotButton = styled(AddButton)`
+  /**
+   * Hack for Safari, which does not confirm to positioning grid elements when
+   * the wrapper element has an opacity of 0. In that regard we staticky set
+   * the height of the slot 😩
+   */
+  min-height: 115px;
+`;
+
 export const UserComposition = memo(
   ({
     compId,
@@ -343,7 +354,7 @@ export const UserComposition = memo(
           </CSSTransition>
         </UserItem>
         <DropAreas {...{ isUserDragging }}>
-          <AddButton
+          <AddSlotButton
             hex={isContentTargeted ? dragHex : contentHex}
             isTargeted={isContentTargeted}
             onDragOver={event => {
@@ -359,8 +370,8 @@ export const UserComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </AddButton>
-          <AddButton
+          </AddSlotButton>
+          <AddSlotButton
             hex={isBaseTargeted ? dragHex : baseHex}
             isTargeted={isBaseTargeted}
             onDragOver={event => {
@@ -376,7 +387,7 @@ export const UserComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </AddButton>
+          </AddSlotButton>
         </DropAreas>
       </ItemWrapper>
     );
@@ -392,7 +403,7 @@ export const AppendComposition = memo(
     return (
       <AddItem>
         <DropAreas {...{ isUserDragging }}>
-          <AddButton
+          <AddSlotButton
             hex={isContentTargeted ? dragHex : GRAY_300}
             isTargeted={isContentTargeted}
             onDragOver={event => {
@@ -407,8 +418,8 @@ export const AppendComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </AddButton>
-          <AddButton
+          </AddSlotButton>
+          <AddSlotButton
             hex={isBaseTargeted ? dragHex : GRAY_300}
             isTargeted={isBaseTargeted}
             onDragOver={event => {
@@ -424,7 +435,7 @@ export const AppendComposition = memo(
             }}
           >
             <FontAwesomeIcon icon={faPlus} size="2x" />
-          </AddButton>
+          </AddSlotButton>
         </DropAreas>
         <AddCompositionButton
           hex={GRAY_300}
