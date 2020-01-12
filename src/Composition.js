@@ -15,8 +15,10 @@ import {
   BLACK,
   GRAY_300,
   GRAY_900,
-  COMP_WIDTH,
-  COMP_HEIGHT,
+  COMP_HEIGHT_LARGE,
+  COMP_WIDTH_LARGE,
+  COMP_HEIGHT_SMALL,
+  COMP_WIDTH_SMALL,
   BORDER_RADIUS,
   BORDER_WIDTH,
   SCALE_200,
@@ -24,10 +26,12 @@ import {
   SCALE_500,
   SCALE_600,
   SPACE_400,
+  SPACE_500,
   SPACE_600,
   SPACE_800,
   SPEED_500,
   SPEED_700,
+  VIEWPORT_500,
   LUMINANCE_SHADOW_500,
   createSwatch,
   checkHasLowLuminance,
@@ -40,13 +44,22 @@ import { AppendSwatch, AddItem, AddButton, DeleteButton } from "./Swatch";
 const CompList = styled.ul`
   ${resetList}
   display: grid;
-  grid-gap: ${SPACE_600}px;
-  grid-template-columns: repeat(auto-fit, minmax(${COMP_WIDTH}px, auto));
-  /* grid-template-rows: repeat(auto-fill, minmax(${COMP_HEIGHT}px, auto)); */
+  grid-gap: ${SPACE_500}px;
+  grid-template-columns: repeat(auto-fit, minmax(${COMP_WIDTH_LARGE}px, auto));
+  /* grid-template-rows: repeat(auto-fill, minmax(${COMP_HEIGHT_LARGE}px, auto)); */
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    grid-gap: ${SPACE_600}px;
+  }
 
   > * {
-    min-height: ${COMP_HEIGHT}px;
-    min-width: ${COMP_WIDTH}px;
+    min-height: ${COMP_HEIGHT_SMALL}px;
+    min-width: ${COMP_WIDTH_SMALL}px;
+
+    @media screen and (min-width: ${VIEWPORT_500}px) {
+      min-height: ${COMP_HEIGHT_LARGE}px;
+      min-width: ${COMP_WIDTH_LARGE}px;
+    }
   }
 `;
 
@@ -55,14 +68,22 @@ const IconList = styled.ul`
 
   display: grid;
   grid-template-columns: repeat(auto-fit, 1rem);
-  grid-gap: ${SPACE_600}px;
+  grid-gap: ${SPACE_500}px;
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    grid-gap: ${SPACE_600}px;
+  }
 `;
 
 const DividerList = styled.ul`
   ${resetList}
   display: grid;
-  grid-gap: ${SPACE_600}px;
+  grid-gap: ${SPACE_500}px;
   grid-template-columns: 1fr;
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    grid-gap: ${SPACE_600}px;
+  }
 `;
 
 const ResultList = styled.ul`
@@ -72,11 +93,15 @@ const ResultList = styled.ul`
   background: ${GRAY_300};
   color: ${GRAY_900};
   justify-content: space-between;
-  padding: ${SPACE_600}px;
+  padding: ${SPACE_500}px;
   font-family: monospace;
   font-size: 24px;
   font-weight: bold;
   align-items: center;
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    padding: ${SPACE_600}px;
+  }
 
   > * {
     display: block;
@@ -122,13 +147,18 @@ const Examples = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
-  grid-gap: ${SPACE_600}px;
+  grid-gap: ${SPACE_500}px;
   background: var(--baseHex);
   color: var(--contentHex);
-  padding: ${SPACE_600}px;
+  padding: ${SPACE_500}px;
   position: relative;
   font-family: sans-serif;
   transition: background ${SPEED_700}ms;
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    padding: ${SPACE_600}px;
+    grid-gap: ${SPACE_600}px;
+  }
 
   > * {
     display: block;
@@ -167,7 +197,7 @@ const SmallText = styled.span`
 const Divider = styled.div`
   border-radius: ${BORDER_RADIUS}px;
   height: ${({ height }) => `${height}px`};
-  background-image: linear-gradient(to right, var(--contentHex), transparent);
+  background-image: linear-gradient(to right, var(--contentHex), var(--baseHex));
 `;
 
 export const Compositions = CompList;
@@ -231,7 +261,7 @@ const DropAreas = styled.div`
   ${positionAbsolute}
   align-items: stretch;
   display: grid;
-  grid-gap: ${SPACE_600}px;
+  grid-gap: ${SPACE_500}px;
   justify-items: stretch;
   padding: ${SPACE_600}px;
   transition-duration: ${SPEED_500}ms;
@@ -244,6 +274,10 @@ const DropAreas = styled.div`
       pointer-events: none;
       transform: scale(${SCALE_600});
     `}
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    grid-gap: ${SPACE_600}px;
+  }
 `;
 
 const ResultIcon = styled(FontAwesomeIcon)`
@@ -305,7 +339,11 @@ const AddSlotButton = styled(AddButton)`
    * the wrapper element has an opacity of 0. In that regard we staticky set
    * the height of the slot 😩
    */
-  min-height: 115px;
+  min-height: 83px;
+
+  @media screen and (min-width: ${VIEWPORT_500}px) {
+    min-height: 115px;
+  }
 `;
 
 export const UserComposition = memo(
@@ -349,7 +387,7 @@ export const UserComposition = memo(
             classNames="deleteItem"
           >
             <DeleteButton hex={GRAY_300} onClick={() => handleDelete(compId)}>
-              <FontAwesomeIcon icon={faPlus} size="1x" />
+              <FontAwesomeIcon icon={faTimes} size="1x" />
             </DeleteButton>
           </CSSTransition>
         </UserItem>

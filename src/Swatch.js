@@ -3,7 +3,7 @@ import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
 import debounce from "lodash.debounce";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faArrowsAlt } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import {
   SWATCH_WIDTH,
   BORDER_WIDTH,
@@ -315,11 +315,15 @@ const Input = styled.input`
 `;
 
 export const DeleteButton = styled(AddButton)`
+  align-items: center;
+  display: flex;
   height: ${SPACE_700}px;
+  justify-content: center;
   position: absolute;
   right: 0;
   top: 0;
   width: ${SPACE_700}px;
+  max-width: ${SPACE_700}px;
 
   /** React CSSTransition animation property when the add <button /> is in NOT ACTIVE. */
   &.deleteItem-enter,
@@ -461,7 +465,7 @@ export const UserSwatch = memo(
               classNames="deleteItem"
             >
               <DeleteButton hex={GRAY_300} onClick={() => handleDelete(swatchId)}>
-                <FontAwesomeIcon icon={faPlus} size="1x" />
+                <FontAwesomeIcon icon={faTimes} size="1x" />
               </DeleteButton>
             </CSSTransition>
           </UserItem>

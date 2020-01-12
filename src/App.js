@@ -11,9 +11,12 @@ import { Header } from "./Header";
 import {
   SWATCH_WIDTH,
   BLACK,
+  SPACE_500,
   SPACE_600,
+  SPACE_800,
   SPEED_500,
   SPEED_700,
+  VIEWPORT_500,
   WHITE,
   findColorComplementFromSwatches,
   createSwatch,
@@ -31,12 +34,20 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    padding: 50px;
+    padding: ${SPACE_500}px;
+
+    @media screen and (min-width: ${VIEWPORT_500}px) {
+      padding: ${SPACE_800}px;
+    }
   }
 
   #root {
     display: grid;
-    grid-gap: ${SPACE_600}px;
+    grid-gap: ${SPACE_500}px;
+
+    @media screen and (min-width: ${VIEWPORT_500}px) {
+      grid-gap: ${SPACE_600}px;
+    }
   }
 `;
 

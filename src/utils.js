@@ -14,8 +14,10 @@ export const SPACE_800 = 40;
 export const SWATCH_WIDTH = 80;
 export const BORDER_WIDTH = 3;
 export const FOCUS_WIDTH = 3;
-export const COMP_WIDTH = SPACE_500 * 16;
-export const COMP_HEIGHT = SPACE_500 * 18;
+export const COMP_WIDTH_LARGE = SPACE_500 * 16;
+export const COMP_HEIGHT_LARGE = SPACE_500 * 18;
+export const COMP_WIDTH_SMALL = COMP_WIDTH_LARGE;
+export const COMP_HEIGHT_SMALL = SPACE_500 * 14;
 
 export const BORDER_RADIUS = 4;
 
@@ -36,6 +38,8 @@ export const SCALE_300 = 0.8;
 export const SCALE_400 = 0.9;
 export const SCALE_500 = 1;
 export const SCALE_600 = 1.1;
+
+export const VIEWPORT_500 = 768;
 
 export const FOCUS_SHADOW_500 = `0 0 13px ${FOCUS_WIDTH}px ${createSwatch(BLACK).setAlpha(0.25)}`;
 
