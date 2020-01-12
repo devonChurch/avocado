@@ -155,7 +155,7 @@ const swatchActiveState = css`
   }
 `;
 
-const DragHitBox = styled.li`
+const DragHitBox = styled.div`
   position: relative;
   transition-duration: ${SPEED_500}ms;
   transition-property: opacity, transform;
@@ -428,15 +428,31 @@ export const UserSwatch = memo(
            */
           event.preventDefault();
         }}
-        onMouseDown={isDeleting ? undefined : () => setIsAboutToDrag(true)}
-        onMouseUp={isDeleting ? undefined : () => setIsAboutToDrag(false)}
+        onPointerDown={isDeleting ? undefined : () => setIsAboutToDrag(true)}
+        onPointerUp={isDeleting ? undefined : () => setIsAboutToDrag(false)}
+        onClick={() => {
+          /**
+           * Addresses an iOS issue where the native color input would not trigger
+           * focus when nested inside the drag area (and all of its own touch
+           * listeners). In that regard when the main wrapper is "clicked" we give
+           * focus to the nested <input />.
+           */
+          swatchRef.current.querySelector("input").focus();
+        }}
       >
         <ReorderTransformation
           {...{ isDragged, isUserDragging }}
           reorderTransform={createReorderTransform(swatchRef.current)}
         >
           <UserItem
-            {...{ hex, isDragged, isUserDragging, isAboutToDrag, shouldSwatchRegress, isDeleting }}
+            {...{
+              hex,
+              isDragged,
+              isUserDragging,
+              isAboutToDrag,
+              shouldSwatchRegress,
+              isDeleting
+            }}
           >
             <CSSTransition
               unmountOnExit
@@ -484,8 +500,8 @@ export const AppendSwatch = memo(({ dragHex, handleClick, handleDrop }) => {
           event.preventDefault();
         }}
         onDragLeave={() => setIsTargeted(false)}
-        onMouseEnter={() => setIsTargeted(true)}
-        onMouseLeave={() => setIsTargeted(false)}
+        onPointerEnter={() => setIsTargeted(true)}
+        onPointerLeave={() => setIsTargeted(false)}
         onDrop={event => {
           handleDrop();
           setIsTargeted(false);

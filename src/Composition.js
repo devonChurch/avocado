@@ -332,8 +332,8 @@ export const UserComposition = memo(
       <ItemWrapper>
         <UserItem
           {...{ isUserDragging, isDeleting, hasCapacityToDelete }}
-          onMouseEnter={isDeleting ? undefined : () => setActiveCompositionId(compId)}
-          onMouseLeave={isDeleting ? undefined : removeActiveCompositionId}
+          onPointerEnter={isDeleting ? undefined : () => setActiveCompositionId(compId)}
+          onPointerLeave={isDeleting ? undefined : removeActiveCompositionId}
         >
           <Examples {...{ baseHex, contentHex }}>
             <SmallText>The quick brown fox,</SmallText>
@@ -442,8 +442,8 @@ export const AppendComposition = memo(
           isActive={!isUserDragging}
           isTargeted={isAddTargeted}
           onClick={handleClick}
-          onMouseEnter={() => setIsAddTargeted(true)}
-          onMouseLeave={() => setIsAddTargeted(false)}
+          onPointerEnter={() => setIsAddTargeted(true)}
+          onPointerLeave={() => setIsAddTargeted(false)}
         >
           <FontAwesomeIcon icon={faPlus} size="2x" />
         </AddCompositionButton>
