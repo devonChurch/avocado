@@ -1,19 +1,19 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "dc5bd964fa9cc2135b062944f57dc152",
+    "revision": "b1525bbc3caabbb326030ecbaa168224",
     "url": "/avocado/index.html"
   },
   {
-    "revision": "55f574972b3561fabbae",
+    "revision": "9731642e300273b42afe",
     "url": "/avocado/static/css/2.764ccc25.chunk.css"
   },
   {
-    "revision": "55f574972b3561fabbae",
-    "url": "/avocado/static/js/2.7f581721.chunk.js"
+    "revision": "9731642e300273b42afe",
+    "url": "/avocado/static/js/2.53f5909c.chunk.js"
   },
   {
-    "revision": "ae8bade3bd2533376cdd",
-    "url": "/avocado/static/js/main.a9c7411d.chunk.js"
+    "revision": "b7656d0ad18e17171ff7",
+    "url": "/avocado/static/js/main.8df23f1b.chunk.js"
   },
   {
     "revision": "3a13e36650f3a46b87c1",
