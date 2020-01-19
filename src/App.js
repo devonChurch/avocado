@@ -8,6 +8,7 @@ import { createGlobalStyle } from "styled-components";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
 import { Header } from "./Header";
+import { Scroll } from "./Scroll";
 import {
   SWATCH_WIDTH,
   BLACK,
@@ -324,6 +325,7 @@ const App = () => {
     <>
       <GlobalStyle />
       <Header {...{ isDeleting, handleDeleteToggle }} />
+      {isUserDragging && <Scroll />}
       <TransitionGroup component={Swatches}>
         {[...swatches].map(([swatchId, hex], swatchIndex) => (
           <CSSTransition key={swatchId} timeout={SPEED_700} classNames="swatch">
