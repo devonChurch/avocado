@@ -4,7 +4,7 @@ A **React** Application to create _*accessible color palettes*_ that confirm to 
 
 ---
 
-### ➡️ [**Try there application _here_**](https://devonchurch.github.io/avocado/) ⬅️
+### ℹ️ ➡️ [**Try there application _here_**](https://devonchurch.github.io/avocado/) 📱 💻 🖥️
 
 ---
 
@@ -14,9 +14,9 @@ As you create color palettes we automatically generate a corresponding URL that 
 
 ### Below are some example color palettes to start you off.
 
-- [<img width="300" alt="Purple palette" src="https://user-images.githubusercontent.com/15273233/70855475-2b166280-1f30-11ea-9786-b640a9fb3a8f.png">](https://devonchurch.github.io/avocado/?s%5B0%5D=%23e6d6d1&s%5B1%5D=%23b0d1dc&s%5B2%5D=%23ada0b2&s%5B3%5D=%236b5a70&s%5B4%5D=%23532e39&c%5B0%5D%5B0%5D=1&c%5B0%5D%5B1%5D=4&c%5B1%5D%5B0%5D=0&c%5B1%5D%5B1%5D=2)
-- [<img width="300" alt="Bright palette" src="https://user-images.githubusercontent.com/15273233/70855476-2b166280-1f30-11ea-9e88-393d3d770cd6.png">](https://devonchurch.github.io/avocado/?s%5B0%5D=%23202e42&s%5B1%5D=%2338a8b7&s%5B2%5D=%23f4ebd7&s%5B3%5D=%23f0a06d&s%5B4%5D=%23d65c5b&c%5B0%5D%5B0%5D=1&c%5B0%5D%5B1%5D=0&c%5B1%5D%5B0%5D=0&c%5B1%5D%5B1%5D=3)
-- [<img width="300" alt="Green palette" src="https://user-images.githubusercontent.com/15273233/70855477-2b166280-1f30-11ea-9cc9-9eae3b06bfd2.png">](https://devonchurch.github.io/avocado/?s%5B0%5D=%23ddf4a1&s%5B1%5D=%239fd250&s%5B2%5D=%237c8369&s%5B3%5D=%236c695d&s%5B4%5D=%2368444d&c%5B0%5D%5B0%5D=4&c%5B0%5D%5B1%5D=0&c%5B1%5D%5B0%5D=0&c%5B1%5D%5B1%5D=3)
+[<img width="300" alt="Purple palette" src="https://user-images.githubusercontent.com/15273233/70855475-2b166280-1f30-11ea-9786-b640a9fb3a8f.png">](https://devonchurch.github.io/avocado/?s%5B0%5D=%23e6d6d1&s%5B1%5D=%23b0d1dc&s%5B2%5D=%23ada0b2&s%5B3%5D=%236b5a70&s%5B4%5D=%23532e39&c%5B0%5D%5B0%5D=1&c%5B0%5D%5B1%5D=4&c%5B1%5D%5B0%5D=0&c%5B1%5D%5B1%5D=2)
+[<img width="300" alt="Bright palette" src="https://user-images.githubusercontent.com/15273233/70855476-2b166280-1f30-11ea-9e88-393d3d770cd6.png">](https://devonchurch.github.io/avocado/?s%5B0%5D=%23202e42&s%5B1%5D=%2338a8b7&s%5B2%5D=%23f4ebd7&s%5B3%5D=%23f0a06d&s%5B4%5D=%23d65c5b&c%5B0%5D%5B0%5D=1&c%5B0%5D%5B1%5D=0&c%5B1%5D%5B0%5D=0&c%5B1%5D%5B1%5D=3)
+[<img width="300" alt="Green palette" src="https://user-images.githubusercontent.com/15273233/70855477-2b166280-1f30-11ea-9cc9-9eae3b06bfd2.png">](https://devonchurch.github.io/avocado/?s%5B0%5D=%23ddf4a1&s%5B1%5D=%239fd250&s%5B2%5D=%237c8369&s%5B3%5D=%236c695d&s%5B4%5D=%2368444d&c%5B0%5D%5B0%5D=4&c%5B0%5D%5B1%5D=0&c%5B1%5D%5B0%5D=0&c%5B1%5D%5B1%5D=3)
 
 ---
 
@@ -24,7 +24,7 @@ As you create color palettes we automatically generate a corresponding URL that 
 
 You can drag individual color swatches to re-order their sequence.
 
-![Reorder swatch example](https://user-images.githubusercontent.com/15273233/70855457-e5599a00-1f2f-11ea-929b-c72174a80052.gif)
+![Reorder swatch example](https://user-images.githubusercontent.com/15273233/72674067-55cb7c00-3ad7-11ea-9885-18b295e49c63.gif)
 
 Color swatches are presented flush with one another to better portray any incremental color differences.
 
