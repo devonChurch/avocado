@@ -140,14 +140,24 @@ const useThrottler = callback => {
   React.useEffect(() => {
     const raf = window.requestAnimationFrame;
     let isRunning = false;
+    let tail;
+
+    // if running
+    // - save callback for later
+    // if NOT running
+    // - exe callback imediately
 
     throttle.current = (...args) => {
       if (!isRunning) {
         isRunning = true;
         raf(() => {
           callback(...args);
+          tail && tail();
           isRunning = false;
         });
+
+      } else {
+        tail = () => console.log('tail') || callback(...args)
       }
     };
 
