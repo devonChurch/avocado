@@ -134,6 +134,29 @@ const useThrottledState = (initialState, delay) => {
   ];
 };
 
+const useThrottler = callback => {
+  const throttle = React.useRef();
+
+  React.useEffect(() => {
+    const raf = window.requestAnimationFrame;
+    let isRunning = false;
+
+    throttle.current = (...args) => {
+      if (!isRunning) {
+        isRunning = true;
+        raf(() => {
+          callback(...args);
+          isRunning = false;
+        });
+      }
+    };
+
+    return () => cancelAnimationFrame(raf);
+  });
+
+  return throttle.current || callback;
+};
+
 const App = () => {
   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** SWATCHES:   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -145,8 +168,11 @@ const App = () => {
   // you drag the native color slider). In that regard, we throttle the amount
   // the swatches state can be updated.
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // const [swatches, setSwatches] = useState([]);
-  const [swatches, setSwatches] = useThrottledState(new Map([]), 1000);
+  const [swatches, setSwatches] = useState(new Map([]));
+  console.log({swatches, setSwatches});
+  // const [swatches, setSwatches] = useThrottledState(new Map([]), 1000);
+
+  const setThrottledSwatches = useThrottler(setSwatches);
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -160,7 +186,7 @@ const App = () => {
     removeDragOverId(null);
   }, [removeDragOverId]);
 
-  const appendSwatch = hex => setSwatches(new Map([...swatches, [createSwatchKey(), hex]]));
+  const appendSwatch = hex => setThrottledSwatches(swatches => new Map([...swatches, [createSwatchKey(), hex]]));
 
   const appendLastListedSwatch = () => {
     const [, lastHex] = [...swatches].pop() || [];
@@ -173,7 +199,7 @@ const App = () => {
   };
 
   const updateUserSwatch = useCallback(
-    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
+    (id, hex) => setThrottledSwatches((swatches) => new Map([...swatches, [id, hex]])),
     [swatches]
   );
 
@@ -200,7 +226,7 @@ const App = () => {
           }
         }, [])
       );
-      setSwatches(nextSwatches);
+      setThrottledSwatches(nextSwatches);
       removeDragIds();
     },
     [swatches, dragStartId, removeDragIds]
@@ -267,7 +293,7 @@ const App = () => {
   useEffect(() => {
     const { swatches, compositions } = convertStateFromQuery(window.location.search);
 
-    setSwatches(swatches);
+    setThrottledSwatches(swatches);
     setCompositions(compositions);
   }, []);
 
@@ -294,7 +320,7 @@ const App = () => {
         ...prevSwatches.slice(0, swatchIndex),
         ...prevSwatches.slice(swatchIndex + 1)
       ];
-      setSwatches(new Map(nextSwatches));
+      setThrottledSwatches(new Map(nextSwatches));
     },
     [swatches]
   );
