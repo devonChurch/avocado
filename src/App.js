@@ -138,9 +138,18 @@ const useThrottler = callback => {
   const throttle = React.useRef();
 
   React.useEffect(() => {
-    const raf = window.requestAnimationFrame;
-    let isRunning = false;
-    let tail;
+    // Throttler...
+    const throttleRaf = window.requestAnimationFrame;
+    let isThrottleRunning = false;
+
+    // Debouncer...
+    let debounceId;
+    const DEBOUNCE_MILLISECONDS = 100;
+    const createDebounce =  (...args) => debounceId = window.setTimeout(
+      () => callback(...args),
+      DEBOUNCE_MILLISECONDS
+    )
+    const removeDebounce = () => window.clearTimeout(debounceId);
 
     // if running
     // - save callback for later
@@ -148,21 +157,24 @@ const useThrottler = callback => {
     // - exe callback imediately
 
     throttle.current = (...args) => {
-      if (!isRunning) {
-        isRunning = true;
-        raf(() => {
+      if (!isThrottleRunning) {
+        isThrottleRunning = true;
+        throttleRaf(() => {
           callback(...args);
-          tail && tail();
-          isRunning = false;
+          isThrottleRunning = false;
         });
 
       } else {
-        tail = () => console.log('tail') || callback(...args)
+        removeDebounce()
+        createDebounce(...args)
       }
     };
 
-    return () => cancelAnimationFrame(raf);
-  });
+    return () => {
+      removeDebounce();
+      cancelAnimationFrame(throttleRaf)
+    };
+  }, []);
 
   return throttle.current || callback;
 };
