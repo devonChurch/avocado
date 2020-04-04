@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from "react";
 
-export const LoadControl = callback => {
+export const LoadControl = (callback) => {
   // Throttler - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  //
-  const throttleRaf = window.requestAnimationFrame;
-  let isThrottleRunning = false;
+  let throttleId;
+  const createThrottle = (action) => (throttleId = window.requestAnimationFrame(action));
+  const removeThrottle = () => (throttleId = window.cancelAnimationFrame(throttleId));
+  const checkIsThrottling = () => Boolean(throttleId);
 
   // Debouncer - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  //
   const DEBOUNCE_MILLISECONDS = 100;
@@ -15,7 +17,7 @@ export const LoadControl = callback => {
   // Depending on the current "load controlled" situation we want to begin a
   // throttle sequence or defer the callback to a debounced scenario.
   const createLoadControl = () => (...args) => {
-    if (isThrottleRunning) {
+    if (checkIsThrottling()) {
       // If we are already throttling - the callback is STILL IMPORTANT. If the
       // throttle finishes but misses the final user input then we could potential
       // have the <input /> and <Swatch /> UI out of sync. In this case we create
@@ -34,25 +36,24 @@ export const LoadControl = callback => {
       // that its run when the browser has the capability to do so.
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       // We ONLY want to run ONE callback per CPU cycle. In that regard we STOP
-      // callbacks from stacking by toggling the isThrottleRunning boolean BEFORE
-      // and AFTER the callback runs.
-      isThrottleRunning = true;
-      throttleRaf(() => {
+      // callbacks from stacking by creating and removing the RAF reference so
+      // that ONLY one is running at a time BEFORE and AFTER the callback runs.
+      createThrottle(() => {
         callback(...args);
-        isThrottleRunning = false;
+        removeThrottle();
       });
     }
   };
 
   const cleanUpLoadControl = () => {
+    removeThrottle();
     removeDebounce();
-    cancelAnimationFrame(throttleRaf);
   };
 
   return [createLoadControl, cleanUpLoadControl];
 };
 
-export const useLoadControl = callback => {
+export const useLoadControl = (callback) => {
   const loadControl = useRef();
 
   useEffect(() => {
