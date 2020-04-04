@@ -1,23 +1,26 @@
-import React, { useEffect, useRef } from "react";
-import throttle from "lodash.throttle";
+import React, { useEffect } from "react";
+import { LoadControl } from "./LoadControl";
 
 export const Scroll = () => {
-  const offset = useRef();
-  const throttledScroll = useRef();
-
   useEffect(() => {
+    let offset;
+    let throttleId;
+    const createThrottle = action => (throttleId = window.requestAnimationFrame(action));
+    const removeThrottle = () => (throttleId = window.cancelAnimationFrame(throttleId));
+    const checkIsThrottling = () => Boolean(throttleId);
+
     const setScroll = () => {
       const { innerHeight, scrollY } = window;
-      const nextScroll = scrollY + offset.current;
+      const nextScroll = scrollY + offset;
       const isTooHigh = nextScroll < 0;
       const isTooLow = nextScroll > document.body.clientHeight - innerHeight;
       const shouldScroll = !isTooHigh && !isTooLow;
 
       if (shouldScroll) {
         window.scroll(0, nextScroll);
-        throttledScroll.current = requestAnimationFrame(setScroll);
+        createThrottle(setScroll);
       } else {
-        throttledScroll.current = null;
+        removeThrottle();
       }
     };
 
@@ -28,43 +31,39 @@ export const Scroll = () => {
       const isOverTopQuarter = pointerPosition < viewPortQuarter;
       const isOverBottomQuarter = pointerPosition > viewPortQuarter * 3;
       const maxScrollOffset = viewPortQuarter;
-      const shouldUpdateScroll =
-        !throttledScroll.current && (isOverTopQuarter || isOverBottomQuarter);
-      const shouldStopScroll =
-        throttledScroll.current && !(isOverTopQuarter || isOverBottomQuarter);
+      const isThrottling = checkIsThrottling();
+      const shouldUpdateScroll = !isThrottling && (isOverTopQuarter || isOverBottomQuarter);
+      const shouldStopScroll = isThrottling && !(isOverTopQuarter || isOverBottomQuarter);
 
       if (isOverTopQuarter) {
         const percentageOffset = (viewPortQuarter - pointerPosition) / viewPortQuarter;
         const pixelOffset = maxScrollOffset * percentageOffset;
-        offset.current = -pixelOffset;
+        offset = -pixelOffset;
       }
 
       if (isOverBottomQuarter) {
         const percentageOffset = (pointerPosition - viewPortQuarter * 3) / viewPortQuarter;
         const pixelOffset = maxScrollOffset * percentageOffset;
-        offset.current = pixelOffset;
+        offset = pixelOffset;
       }
 
       if (shouldUpdateScroll) {
-        throttledScroll.current = requestAnimationFrame(setScroll);
+        createThrottle(setScroll);
       }
 
       if (shouldStopScroll) {
-        throttledScroll.current = null;
+        removeThrottle();
       }
     };
 
-    const handlePointerMove = event => {
-      checkScenario(event);
-    };
-
-    const throttledDrag = throttle(handlePointerMove, 250, { trailing: false });
-
-    window.addEventListener("dragover", throttledDrag);
+    const [createDragLoadControl, cleanUpDragLoadControl] = LoadControl(checkScenario);
+    const dragLoadControl = createDragLoadControl();
+    window.addEventListener("dragover", dragLoadControl);
 
     return function cleanUp() {
-      throttledScroll.current = null;
-      window.removeEventListener("dragover", handlePointerMove);
+      removeThrottle();
+      cleanUpDragLoadControl();
+      window.removeEventListener("dragover", dragLoadControl);
     };
   }, []);
 
