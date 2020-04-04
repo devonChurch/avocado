@@ -1,9 +1,9 @@
 import React, { memo, useState, useEffect, useRef, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
-import debounce from "lodash.debounce";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useLoadControl } from "./LoadControl";
 import {
   SWATCH_WIDTH,
   BORDER_WIDTH,
@@ -34,7 +34,7 @@ import {
   checkHasLowLuminance,
   resetList,
   positionAbsolute,
-  deleteAnimation
+  deleteAnimation,
 } from "./utils";
 
 const SwatchList = styled.ul`
@@ -358,26 +358,25 @@ export const UserSwatch = memo(
     hasCapacityToDelete,
     createReorderTransform,
     shouldSwatchPronounce,
-    shouldSwatchRegress
+    shouldSwatchRegress,
   }) => {
     const [isDragged, setIsDragged] = useState(false);
     const [isAboutToDrag, setIsAboutToDrag] = useState(false);
+    const swatchRef = useRef(null);
 
     /**
-     * We are debouncing the color input change to our `swatch` global state.
-     * Debouncing causes the swatch hex to hang on the current value until the
-     * callback finally updates. This "hanging" makes the native color `<input />`
-     * constantly revert back to the swatch hex rather than the users current
-     * selection.
+     * We are "load controling" the color input change to our `swatch` global state.
+     * Throttling/Debouncing causes the swatch hex to hang on the current value
+     * until the callback finally updates. This "hanging" makes the native color
+     * `<input />` constantly revert back to the swatch hex rather than the users
+     * current selection.
      *
      * In that regard, we need to keep a local reference to what the user has
      * selected as their "next" hex choice so that the UI responds with a snappy
      * experience.
      */
     const [inputValue, setInputValue] = useState(hex);
-    const debouncedInputHandler = debounce(value => handleChange(swatchId, value), 100);
-
-    const swatchRef = useRef(null);
+    const handleLoadControledChange = useLoadControl((value) => handleChange(swatchId, value));
 
     return (
       <DragHitBox
@@ -388,11 +387,11 @@ export const UserSwatch = memo(
           shouldSwatchPronounce,
           shouldSwatchRegress,
           isDeleting,
-          hasCapacityToDelete
+          hasCapacityToDelete,
         }}
         draggable={!isDeleting}
         ref={swatchRef}
-        onDragStart={event => {
+        onDragStart={(event) => {
           setIsAboutToDrag(false);
           /*
            * Even though we are setting the drag n drop state through React Firefox
@@ -414,7 +413,7 @@ export const UserSwatch = memo(
           setIsDragged(false);
           handleDragEnd();
         }}
-        onDragOver={event => {
+        onDragOver={(event) => {
           handleDragOver(swatchId);
           /*
            * MDN suggests applying `preventDefault` on specific DnD event hooks.
@@ -423,7 +422,7 @@ export const UserSwatch = memo(
           event.preventDefault();
         }}
         onDragLeave={handleDragExit}
-        onDrop={event => {
+        onDrop={(event) => {
           setIsDragged(false);
           handleDrop(swatchId);
           /*
@@ -441,7 +440,8 @@ export const UserSwatch = memo(
            * listeners). In that regard when the main wrapper is "clicked" we give
            * focus to the nested <input />.
            */
-          swatchRef.current.querySelector("input").focus();
+          const input = swatchRef.current.querySelector("input");
+          input && input.focus();
         }}
       >
         <ReorderTransformation
@@ -455,7 +455,7 @@ export const UserSwatch = memo(
               isUserDragging,
               isAboutToDrag,
               shouldSwatchRegress,
-              isDeleting
+              isDeleting,
             }}
           >
             <CSSTransition
@@ -473,10 +473,10 @@ export const UserSwatch = memo(
             <Input
               type="color"
               value={inputValue}
-              onChange={event => {
+              onChange={(event) => {
                 const { value } = event.target;
                 setInputValue(value);
-                debouncedInputHandler(value);
+                handleLoadControledChange(value);
               }}
             />
           )}
@@ -495,7 +495,7 @@ export const AppendSwatch = memo(({ dragHex, handleClick, handleDrop }) => {
         {...{ isTargeted }}
         hex={isTargeted && dragHex ? dragHex : GRAY_300}
         onClick={handleClick}
-        onDragOver={event => {
+        onDragOver={(event) => {
           /*
            * An `onDragOver` event MUST be present in order for a `onDrop` to
            * trigger!
@@ -506,7 +506,7 @@ export const AppendSwatch = memo(({ dragHex, handleClick, handleDrop }) => {
         onDragLeave={() => setIsTargeted(false)}
         onPointerEnter={() => setIsTargeted(true)}
         onPointerLeave={() => setIsTargeted(false)}
-        onDrop={event => {
+        onDrop={(event) => {
           handleDrop();
           setIsTargeted(false);
           /*

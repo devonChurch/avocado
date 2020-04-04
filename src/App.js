@@ -3,8 +3,8 @@ import "drag-drop-touch";
 import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
-import throttle from "lodash.throttle";
 import { createGlobalStyle } from "styled-components";
+import { useLoadControl } from "./LoadControl";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
 import { Header } from "./Header";
@@ -104,49 +104,18 @@ const calculateReorderTransform = (swatches, dragStartId, dragOverId, swatchInde
   };
 };
 
-const useThrottledState = (initialState, delay) => {
-  const [isPrepped, setIsPrepped] = useState(false);
-  const [state, setState] = useState(initialState);
-  const throttled = useRef();
-
-  useEffect(() => {
-    const handleUpdate = newState => setState(newState);
-    throttled.current = throttle(handleUpdate, delay, { trailing: false });
-
-    // Once the throttler has been setup we toggle a flag to ensure that we return
-    // the throttled state "updater"
-    if (!isPrepped) {
-      setIsPrepped(true);
-    }
-
-    // Destroy persistent throttle reference on unmount.
-    return () => throttled.current.cancel();
-
-    // Force the effect to ONLY run on init so as NOT to recreate the thriller
-    // setup (which would be super bad).
-  }, []);
-
-  return [
-    state,
-    // If we have NOT prepped the throttler yet then just send back the "immediate"
-    // setState reference.
-    isPrepped ? throttled.current : setState
-  ];
-};
-
 const App = () => {
   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** SWATCHES:   ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
    ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
-  // Se swap out the "vanilla" useState hook for a custom implementation that
-  // throttles the update of the "swatches" references. The swatch state is the
-  // catalyst for performant heavy re-renders (think hundreds of hex updates as
-  // you drag the native color slider). In that regard, we throttle the amount
-  // the swatches state can be updated.
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // const [swatches, setSwatches] = useState([]);
-  const [swatches, setSwatches] = useThrottledState(new Map([]), 1000);
+  const [swatches, setSwatches] = useState(new Map([]));
+  // We enrich the "vanilla" useState hook with a custom implementation that
+  // throttles and debounces the update of the "swatches" references. The swatch
+  // state is the catalyst for performant heavy re-renders (think hundreds of hex
+  // updates as you drag the native color slider). In that regard, we throttle
+  // the amount that the swatches state can be updated.
+  const setLoadControledSwatches = useLoadControl(setSwatches);
 
   const [dragStartId, setDragStartId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -160,7 +129,8 @@ const App = () => {
     removeDragOverId(null);
   }, [removeDragOverId]);
 
-  const appendSwatch = hex => setSwatches(new Map([...swatches, [createSwatchKey(), hex]]));
+  const appendSwatch = hex =>
+    setLoadControledSwatches(swatches => new Map([...swatches, [createSwatchKey(), hex]]));
 
   const appendLastListedSwatch = () => {
     const [, lastHex] = [...swatches].pop() || [];
@@ -173,7 +143,7 @@ const App = () => {
   };
 
   const updateUserSwatch = useCallback(
-    (id, hex) => setSwatches(new Map([...swatches, [id, hex]])),
+    (id, hex) => setLoadControledSwatches(swatches => new Map([...swatches, [id, hex]])),
     [swatches]
   );
 
@@ -200,7 +170,7 @@ const App = () => {
           }
         }, [])
       );
-      setSwatches(nextSwatches);
+      setLoadControledSwatches(nextSwatches);
       removeDragIds();
     },
     [swatches, dragStartId, removeDragIds]
@@ -267,7 +237,7 @@ const App = () => {
   useEffect(() => {
     const { swatches, compositions } = convertStateFromQuery(window.location.search);
 
-    setSwatches(swatches);
+    setLoadControledSwatches(swatches);
     setCompositions(compositions);
   }, []);
 
@@ -294,7 +264,7 @@ const App = () => {
         ...prevSwatches.slice(0, swatchIndex),
         ...prevSwatches.slice(swatchIndex + 1)
       ];
-      setSwatches(new Map(nextSwatches));
+      setLoadControledSwatches(new Map(nextSwatches));
     },
     [swatches]
   );
