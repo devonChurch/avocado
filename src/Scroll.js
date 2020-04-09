@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { LoadControl } from "./LoadControl";
+import { LoadControl } from "eggs-benedict";
+// import { LoadControl } from "./LoadControl";
 
 export const Scroll = () => {
   useEffect(() => {
     let offset;
     let throttleId;
-    const createThrottle = action => (throttleId = window.requestAnimationFrame(action));
+    const createThrottle = (action) => (throttleId = window.requestAnimationFrame(action));
     const removeThrottle = () => (throttleId = window.cancelAnimationFrame(throttleId));
     const checkIsThrottling = () => Boolean(throttleId);
 
@@ -24,7 +25,7 @@ export const Scroll = () => {
       }
     };
 
-    const checkScenario = event => {
+    const checkScenario = (event) => {
       const viewPortHeight = window.innerHeight;
       const viewPortQuarter = viewPortHeight / 4;
       const pointerPosition = event.clientY;
@@ -56,8 +57,7 @@ export const Scroll = () => {
       }
     };
 
-    const [createDragLoadControl, cleanUpDragLoadControl] = LoadControl(checkScenario);
-    const dragLoadControl = createDragLoadControl();
+    const [dragLoadControl, cleanUpDragLoadControl] = LoadControl(checkScenario, {});
     window.addEventListener("dragover", dragLoadControl);
 
     return function cleanUp() {

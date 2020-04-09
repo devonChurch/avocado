@@ -4,7 +4,8 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
-import { useLoadControl } from "./LoadControl";
+import { useLoadControl } from "eggs-benedict/hooks";
+// import { useLoadControl } from "./LoadControl";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
 import { Header } from "./Header";
@@ -22,7 +23,7 @@ import {
   findColorComplementFromSwatches,
   createSwatch,
   convertStateToQuery,
-  convertStateFromQuery
+  convertStateFromQuery,
 } from "./utils";
 
 const GlobalStyle = createGlobalStyle`
@@ -55,7 +56,7 @@ const GlobalStyle = createGlobalStyle`
 const createSwatchKey = () => nanoid();
 const createCompositionKey = createSwatchKey;
 
-const createIndexComparison = idOne => ([idTwo]) => idOne === idTwo;
+const createIndexComparison = (idOne) => ([idTwo]) => idOne === idTwo;
 const findSwatchIndexFromId = (swatches, id) => swatches.findIndex(createIndexComparison(id));
 const findCompositionIndexFromId = (compositions, id) =>
   compositions.findIndex(createIndexComparison(id));
@@ -129,8 +130,8 @@ const App = () => {
     removeDragOverId(null);
   }, [removeDragOverId]);
 
-  const appendSwatch = hex =>
-    setLoadControledSwatches(swatches => new Map([...swatches, [createSwatchKey(), hex]]));
+  const appendSwatch = (hex) =>
+    setLoadControledSwatches((swatches) => new Map([...swatches, [createSwatchKey(), hex]]));
 
   const appendLastListedSwatch = () => {
     const [, lastHex] = [...swatches].pop() || [];
@@ -143,12 +144,12 @@ const App = () => {
   };
 
   const updateUserSwatch = useCallback(
-    (id, hex) => setLoadControledSwatches(swatches => new Map([...swatches, [id, hex]])),
+    (id, hex) => setLoadControledSwatches((swatches) => new Map([...swatches, [id, hex]])),
     [swatches]
   );
 
   const moveSwatchToNewLocation = useCallback(
-    dropId => {
+    (dropId) => {
       if (dragStartId === dropId) return;
 
       const prevSwatches = [...swatches];
@@ -187,7 +188,7 @@ const App = () => {
   const [activeCompositionId, setActiveCompositionId] = useState(null);
   const removeActiveCompositionId = () => setActiveCompositionId(null);
 
-  const setSwatchAppearanceAgainstCompositionTarget = swatchId => {
+  const setSwatchAppearanceAgainstCompositionTarget = (swatchId) => {
     if (!activeCompositionId) return;
     const composition = compositions.get(activeCompositionId);
     const hasBase = composition.baseId === swatchId;
@@ -201,7 +202,7 @@ const App = () => {
   const appendComposition = ({ baseId, contentId } = {}) => {
     const compositionIds = {
       baseId: baseId || findColorComplementFromSwatches(contentId, swatches),
-      contentId: contentId || findColorComplementFromSwatches(baseId, swatches)
+      contentId: contentId || findColorComplementFromSwatches(baseId, swatches),
     };
     setCompositions(new Map([...compositions, [createCompositionKey(), compositionIds]]));
   };
@@ -211,7 +212,7 @@ const App = () => {
     appendComposition(compositionIds);
   };
 
-  const appendCompositionFromDraggedSwatch = compositionIds => {
+  const appendCompositionFromDraggedSwatch = (compositionIds) => {
     appendComposition(compositionIds);
     removeDragIds();
   };
@@ -223,7 +224,7 @@ const App = () => {
       const nextComps = [
         ...prevComps.slice(0, compIndex),
         [compId, composition],
-        ...prevComps.slice(compIndex + 1)
+        ...prevComps.slice(compIndex + 1),
       ];
       setCompositions(new Map(nextComps));
     },
@@ -257,12 +258,12 @@ const App = () => {
   const handleDeleteToggle = () => setIsDeleting(!isDeleting);
 
   const deleteSwatch = useCallback(
-    swatchId => {
+    (swatchId) => {
       const prevSwatches = [...swatches];
       const swatchIndex = findSwatchIndexFromId(prevSwatches, swatchId);
       const nextSwatches = [
         ...prevSwatches.slice(0, swatchIndex),
-        ...prevSwatches.slice(swatchIndex + 1)
+        ...prevSwatches.slice(swatchIndex + 1),
       ];
       setLoadControledSwatches(new Map(nextSwatches));
     },
@@ -270,7 +271,7 @@ const App = () => {
   );
 
   const deleteComposition = useCallback(
-    compId => {
+    (compId) => {
       const prevComps = [...compositions];
       const compIndex = findCompositionIndexFromId(prevComps, compId);
       const nextComps = [...prevComps.slice(0, compIndex), ...prevComps.slice(compIndex + 1)];
@@ -288,7 +289,7 @@ const App = () => {
       []
     );
 
-    return swatchId => activeSwatchIds.includes(swatchId);
+    return (swatchId) => activeSwatchIds.includes(swatchId);
   })();
 
   return (
@@ -306,7 +307,7 @@ const App = () => {
                 hex,
                 isUserDragging,
                 isDeleting,
-                ...setSwatchAppearanceAgainstCompositionTarget(swatchId)
+                ...setSwatchAppearanceAgainstCompositionTarget(swatchId),
               }}
               hasCapacityToDelete={
                 hasEnoughSwatchesToDelete && !checkIsSwatchInAnyComposition(swatchId)
@@ -362,7 +363,7 @@ const App = () => {
                 isUserDragging,
                 isDeleting,
                 setActiveCompositionId,
-                removeActiveCompositionId
+                removeActiveCompositionId,
               }}
               hasCapacityToDelete={hasEnoughCompositionsToDelete}
               baseHex={swatches.get(baseId)}

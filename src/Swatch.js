@@ -3,7 +3,8 @@ import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { useLoadControl } from "./LoadControl";
+import { useLoadControl } from "eggs-benedict/hooks";
+// import { useLoadControl } from "./LoadControl";
 import {
   SWATCH_WIDTH,
   BORDER_WIDTH,
@@ -376,7 +377,9 @@ export const UserSwatch = memo(
      * experience.
      */
     const [inputValue, setInputValue] = useState(hex);
-    const handleLoadControledChange = useLoadControl((value) => handleChange(swatchId, value));
+    const handleLoadControledChange = useLoadControl((value) => handleChange(swatchId, value), {
+      throttleDelay: 500,
+    });
 
     return (
       <DragHitBox
