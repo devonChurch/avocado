@@ -5,7 +5,6 @@ import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
 import { useLoadControl } from "eggs-benedict/hooks";
-// import { useLoadControl } from "./LoadControl";
 import { Swatches, UserSwatch, AppendSwatch } from "./Swatch";
 import { Compositions, UserComposition, AppendComposition } from "./Composition";
 import { Header } from "./Header";

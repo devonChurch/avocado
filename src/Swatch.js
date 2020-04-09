@@ -4,7 +4,6 @@ import styled, { css } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useLoadControl } from "eggs-benedict/hooks";
-// import { useLoadControl } from "./LoadControl";
 import {
   SWATCH_WIDTH,
   BORDER_WIDTH,

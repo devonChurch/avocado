@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { LoadControl } from "eggs-benedict";
-// import { LoadControl } from "./LoadControl";
 
 export const Scroll = () => {
   useEffect(() => {
