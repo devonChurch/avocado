@@ -2,7 +2,7 @@ import { css, keyframes } from "styled-components";
 import tinyColor from "tinycolor2";
 import qs from "qs";
 
-export const createSwatch = hex => tinyColor(hex);
+export const createSwatch = (hex) => tinyColor(hex);
 
 export const SPACE_300 = 4;
 export const SPACE_400 = 8;
@@ -56,36 +56,29 @@ export const findColorComplementFromSwatches = (compareId, swatches) => {
   return complementId;
 };
 
-export const checkHasLowLuminance = hex => createSwatch(hex).getLuminance() > 0.9;
+export const checkHasLowLuminance = (hex) => createSwatch(hex).getLuminance() > 0.9;
 
 const updateLuminanceStatic = (lighten, darken) => (isLuminant, luminance) =>
   isLuminant ? lighten : darken;
 
-const updateLuminanceDynamic = percentage => (isLuminant, luminance) => {
-  const offset = (luminance * percentage) / 100;
-  return isLuminant ? Math.max(luminance - offset, 0) : Math.min(luminance + offset, 100);
-};
-
-const createColorCompanion = (createUpdate, alpha = 1) => hex => {
+const createColorCompanion = (createUpdate, alpha = 1) => (hex) => {
   const prevSwatch = createSwatch(hex).toHsl();
   const { l: luminanceBefore } = prevSwatch;
   const isLuminant = luminanceBefore > 0.6;
   const luminanceAfter = createUpdate(isLuminant, luminanceBefore);
   const nextSwatch = { ...prevSwatch, l: luminanceAfter };
 
-  return tinyColor(nextSwatch)
-    .setAlpha(alpha)
-    .toString();
+  return tinyColor(nextSwatch).setAlpha(alpha).toString();
 };
 
 export const createOffsetColor = createColorCompanion(updateLuminanceStatic(0.2, 0.8));
-export const createTargetColor = hex => hex;
+export const createTargetColor = (hex) => hex;
 export const createFocusColor = createColorCompanion(updateLuminanceStatic(0.3, 0.7), 0.5);
 export const createActiveColor = createColorCompanion(updateLuminanceStatic(0.5, 0.5), 1);
 
-export const createFocusborder = hex => `0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
-export const createFocusState = hex => createFocusborder(hex);
-export const createFocusStateWithShadow = hex => `${FOCUS_SHADOW_500}, ${createFocusborder(hex)}`;
+export const createFocusborder = (hex) => `0 0 0 ${FOCUS_WIDTH}px ${createFocusColor(hex)}`;
+export const createFocusState = (hex) => createFocusborder(hex);
+export const createFocusStateWithShadow = (hex) => `${FOCUS_SHADOW_500}, ${createFocusborder(hex)}`;
 
 export const resetList = css`
   list-style: none;
@@ -106,13 +99,13 @@ const defaultSwatches = new Map([
   ["2", createSwatch("rgb(246, 199, 163)").toHexString()],
   ["3", createSwatch("rgb(240, 124, 125)").toHexString()],
   ["4", createSwatch("rgb(218, 68, 93)").toHexString()],
-  ["5", createSwatch("rgb(38, 51, 56)").toHexString()]
+  ["5", createSwatch("rgb(38, 51, 56)").toHexString()],
 ]);
 
 const defaultCompositions = new Map([
   ["1", { baseId: "5", contentId: "1" }],
   ["2", { baseId: "4", contentId: "2" }],
-  ["3", { baseId: "2", contentId: "5" }]
+  ["3", { baseId: "2", contentId: "5" }],
 ]);
 
 export const convertStateToQuery = (swatches, compositions) => {
@@ -120,13 +113,13 @@ export const convertStateToQuery = (swatches, compositions) => {
   const swatchKeys = [...swatches.keys()];
   const compFlat = [...compositions.values()].map(({ baseId, contentId }) => [
     swatchKeys.indexOf(baseId),
-    swatchKeys.indexOf(contentId)
+    swatchKeys.indexOf(contentId),
   ]);
 
   return qs.stringify({ s: swatchFlat, c: compFlat }, { addQueryPrefix: true });
 };
 
-export const convertStateFromQuery = search => {
+export const convertStateFromQuery = (search) => {
   const { s: swatches = [], c: compositions = [] } = qs.parse(search, { ignoreQueryPrefix: true });
   const swatchMap = new Map(swatches.map((value, index) => [`${index}`, value]));
   const compMap = new Map(
@@ -136,11 +129,11 @@ export const convertStateFromQuery = search => {
 
   return {
     swatches: hasUserConfig ? swatchMap || [] : defaultSwatches,
-    compositions: hasUserConfig ? compMap || [] : defaultCompositions
+    compositions: hasUserConfig ? compMap || [] : defaultCompositions,
   };
 };
 
-export const deleteKeyframes = offset => keyframes`
+export const deleteKeyframes = (offset) => keyframes`
   from {
     transform: rotate(-${offset}deg);
   }
@@ -150,7 +143,7 @@ export const deleteKeyframes = offset => keyframes`
   }
 `;
 
-export const deleteAnimation = offset => css`
+export const deleteAnimation = (offset) => css`
   transform-origin: right top;
   animation: 0.1s infinite alternate ${deleteKeyframes(offset)};
   animation-timing-function: ease-in-out;

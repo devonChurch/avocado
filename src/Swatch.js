@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useRef, useCallback } from "react";
+import React, { memo, useState, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -9,10 +9,7 @@ import {
   BORDER_WIDTH,
   BORDER_RADIUS,
   WHITE,
-  BLACK,
   GRAY_300,
-  GRAY_500,
-  GRAY_900,
   SPEED_500,
   SPEED_700,
   SCALE_300,
@@ -22,10 +19,8 @@ import {
   SPACE_300,
   SPACE_400,
   SPACE_500,
-  SPACE_600,
   SPACE_700,
   LUMINANCE_SHADOW_500,
-  createSwatch,
   createOffsetColor,
   createTargetColor,
   createFocusState,

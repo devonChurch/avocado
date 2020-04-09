@@ -1,6 +1,6 @@
 import "normalize.css";
 import "drag-drop-touch";
-import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import nanoid from "nanoid";
 import { createGlobalStyle } from "styled-components";
@@ -15,12 +15,9 @@ import {
   SPACE_500,
   SPACE_600,
   SPACE_800,
-  SPEED_500,
   SPEED_700,
   VIEWPORT_500,
-  WHITE,
   findColorComplementFromSwatches,
-  createSwatch,
   convertStateToQuery,
   convertStateFromQuery,
 } from "./utils";

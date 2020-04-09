@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from "react";
+import React, { memo, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled, { css } from "styled-components";
 import tinyColor from "tinycolor2";
@@ -9,10 +9,9 @@ import {
   faCalendarAlt,
   faCommentDots,
   faStar,
-  faTrashAlt
+  faTrashAlt,
 } from "@fortawesome/free-regular-svg-icons";
 import {
-  BLACK,
   GRAY_300,
   GRAY_900,
   COMP_HEIGHT_LARGE,
@@ -20,26 +19,22 @@ import {
   COMP_HEIGHT_SMALL,
   COMP_WIDTH_SMALL,
   BORDER_RADIUS,
-  BORDER_WIDTH,
   SCALE_200,
   SCALE_300,
   SCALE_500,
   SCALE_600,
-  SPACE_400,
   SPACE_500,
   SPACE_600,
-  SPACE_800,
   SPEED_500,
   SPEED_700,
   VIEWPORT_500,
   LUMINANCE_SHADOW_500,
-  createSwatch,
   checkHasLowLuminance,
   resetList,
   positionAbsolute,
-  deleteAnimation
+  deleteAnimation,
 } from "./utils";
-import { AppendSwatch, AddItem, AddButton, DeleteButton } from "./Swatch";
+import { AddItem, AddButton, DeleteButton } from "./Swatch";
 
 const CompList = styled.ul`
   ${resetList}
@@ -209,7 +204,7 @@ const createContrastPercentage = (baseHex, contentHex) => {
   return Math.round(percentage);
 };
 
-const createAccessibilityComparison = (baseHex, contentHex) => level =>
+const createAccessibilityComparison = (baseHex, contentHex) => (level) =>
   tinyColor.isReadable(baseHex, contentHex, { level, size: "small" });
 
 const findAccessibilityLevel = (baseHex, contentHex) => {
@@ -240,7 +235,7 @@ const Icons = () => (
 const Dividers = () => (
   <div>
     <DividerList>
-      {[1, 2, 4].map(height => (
+      {[1, 2, 4].map((height) => (
         <li key={height}>
           <Divider {...{ height }} />
         </li>
@@ -361,7 +356,7 @@ export const UserComposition = memo(
     handleDelete,
     handleDrop,
     setActiveCompositionId,
-    removeActiveCompositionId
+    removeActiveCompositionId,
   }) => {
     const [isContentTargeted, setIsContentTargeted] = useState(false);
     const [isBaseTargeted, setIsBaseTargeted] = useState(false);
@@ -395,12 +390,12 @@ export const UserComposition = memo(
           <AddSlotButton
             hex={isContentTargeted ? dragHex : contentHex}
             isTargeted={isContentTargeted}
-            onDragOver={event => {
+            onDragOver={(event) => {
               setIsContentTargeted(true);
               event.preventDefault();
             }}
             onDragLeave={() => setIsContentTargeted(false)}
-            onDrop={event => {
+            onDrop={(event) => {
               handleDrop(compId, { contentId: dragStartId, baseId });
               setIsContentTargeted(false);
               setIsBaseTargeted(false);
@@ -412,12 +407,12 @@ export const UserComposition = memo(
           <AddSlotButton
             hex={isBaseTargeted ? dragHex : baseHex}
             isTargeted={isBaseTargeted}
-            onDragOver={event => {
+            onDragOver={(event) => {
               setIsBaseTargeted(true);
               event.preventDefault();
             }}
             onDragLeave={() => setIsBaseTargeted(false)}
-            onDrop={event => {
+            onDrop={(event) => {
               handleDrop(compId, { contentId, baseId: dragStartId });
               setIsContentTargeted(false);
               setIsBaseTargeted(false);
@@ -444,12 +439,12 @@ export const AppendComposition = memo(
           <AddSlotButton
             hex={isContentTargeted ? dragHex : GRAY_300}
             isTargeted={isContentTargeted}
-            onDragOver={event => {
+            onDragOver={(event) => {
               setIsContentTargeted(true);
               event.preventDefault();
             }}
             onDragLeave={() => setIsContentTargeted(false)}
-            onDrop={event => {
+            onDrop={(event) => {
               handleDrop({ contentId: dragStartId });
               setIsContentTargeted(false);
               event.preventDefault();
@@ -460,12 +455,12 @@ export const AppendComposition = memo(
           <AddSlotButton
             hex={isBaseTargeted ? dragHex : GRAY_300}
             isTargeted={isBaseTargeted}
-            onDragOver={event => {
+            onDragOver={(event) => {
               setIsBaseTargeted(true);
               event.preventDefault();
             }}
             onDragLeave={() => setIsBaseTargeted(false)}
-            onDrop={event => {
+            onDrop={(event) => {
               handleDrop({ baseId: dragStartId });
               setIsContentTargeted(false);
               setIsBaseTargeted(false);

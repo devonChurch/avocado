@@ -1,32 +1,9 @@
-import React, { memo, useEffect, useRef, useState } from "react";
-import styled, { css } from "styled-components";
+import React, { memo } from "react";
+import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashAlt, faTasks } from "@fortawesome/free-solid-svg-icons";
 import { faGithubAlt } from "@fortawesome/free-brands-svg-icons";
-import {
-  BLACK,
-  GRAY_300,
-  GRAY_900,
-  COMP_WIDTH,
-  COMP_HEIGHT,
-  BORDER_RADIUS,
-  BORDER_WIDTH,
-  SCALE_200,
-  SCALE_300,
-  SCALE_500,
-  SCALE_600,
-  SPACE_400,
-  SPACE_500,
-  SPACE_600,
-  SPACE_800,
-  SPEED_500,
-  SPEED_700,
-  LUMINANCE_SHADOW_500,
-  createSwatch,
-  checkHasLowLuminance,
-  resetList,
-  positionAbsolute
-} from "./utils";
+import { GRAY_300, SPACE_400, SPACE_500, SPACE_800 } from "./utils";
 import { AddButton } from "./Swatch";
 
 const Button = styled(AddButton)`
